@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.middleware import AutoRecordMiddleware
 from app.routers import calculators, chat, health, historico, parsers
 
 
@@ -23,6 +24,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# Auto-record: grava histórico se header X-Cliente-CNPJ presente em /calc/*
+app.add_middleware(AutoRecordMiddleware)
 
 app.include_router(health.router)
 app.include_router(calculators.router)

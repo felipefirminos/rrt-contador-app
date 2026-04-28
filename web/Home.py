@@ -28,7 +28,7 @@ else:
 
 st.markdown("---")
 
-st.subheader("Calculadoras disponíveis (v0.7 — 33 ferramentas + parsers + histórico)")
+st.subheader("Calculadoras disponíveis (v0.8 — 33 ferramentas + parsers + histórico + auto-record)")
 st.markdown(
     """
     **Tributário PJ — Apuração**
@@ -80,11 +80,12 @@ st.markdown(
     |---|---|---|
     | DAS PDF (única + lote) + XML fiscal (NF-e/NFC-e/NFS-e) | `Parsers` | Conferência fiscal, fechamento mensal |
 
-    **Histórico + Inteligência (NOVO v0.7)**
+    **Histórico + Inteligência (v0.7 — v0.8)**
 
     | Função | Página | Use |
     |---|---|---|
     | Histórico SQLite por CNPJ + detector de padrões + sugestões proativas | `Historico Cliente` | Memória institucional do escritório, calendário fiscal automatizado |
+    | **Auto-record (NOVO v0.8)** | _middleware transparente_ | Header `X-Cliente-CNPJ` em qualquer `/calc/*` grava automaticamente |
 
     **Q&A**
 

@@ -9,7 +9,7 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
   system prompt e as calculadoras expostas como **tools** — o assistente
   chama as funções reais ao invés de improvisar números
 
-## Calculadoras expostas (v0.7 — 33 ferramentas + parsers + histórico/inteligência)
+## Calculadoras expostas (v0.8 — 33 ferramentas + parsers + histórico + auto-record)
 
 ### Tributário PJ
 | Endpoint | Validação empírica |
@@ -106,13 +106,35 @@ Schema SQLite com índices em `cnpj`, `timestamp`, `avaliacao`. Tiebreaker
 por `id DESC` (timestamp tem resolução de segundos). Schema migra
 automaticamente na 1ª execução.
 
+### Auto-record middleware (Round K — v0.8)
+
+Qualquer chamada bem-sucedida em `/calc/*` é gravada automaticamente
+no histórico se o request incluir o header `X-Cliente-CNPJ`. Opcional:
+`X-Cliente-Texto` (ASCII) sobrescreve a descrição default.
+
+```bash
+curl -X POST http://127.0.0.1:8765/calc/simples-das \
+  -H 'Content-Type: application/json' \
+  -H 'X-Cliente-CNPJ: 12.345.678/0001-99' \
+  -H 'X-Cliente-Texto: DAS Anexo III mar/2025' \
+  -d '{"anexo":"III","rbt12":900000,"receita_mes":80000,"folha12":300000}'
+```
+
+Comportamento:
+- **Opt-in**: sem header, middleware não interfere (nenhuma escrita)
+- **Apenas /calc/***: parsers, chat, histórico e health ficam de fora
+- **Apenas 2xx**: erros de validação (422) e exceções não poluem o histórico
+- **Best-effort**: falha de gravação NUNCA quebra a resposta da calc
+- **Tags inferidas do path**: `/calc/recuperacao/tema-69` → `['recuperacao', 'tema-69']`
+- **Resultado preservado**: até 64KB do JSON da calc vai para `resultado_json`
+
 ### LLM
 | `POST /chat` + `POST /chat/stream` | 33 ferramentas como Anthropic tools |
 
 ## Qualidade
 
 - **57 scripts upstream passam seus testes próprios** (~1835 asserções) na cópia em `engine/`
-- **120 testes pytest** na API (`api/tests/`) cobrindo:
+- **131 testes pytest** na API (`api/tests/`) cobrindo:
   - Auditoria contra os 7 erros recorrentes do SKILL.md (§1 CPP, §2 INSS 11%, §3 controvérsia Simples, §4 efeito-salto, §5 engenharia, §6 escrituração, §7 transição 2025-2028)
   - Incidências de rescisão (CLT 144 — férias indenizadas isentas)
   - Guias da folha (vencimentos GPS dia 20, FGTS dia 7, DARF 0561)
@@ -133,10 +155,12 @@ automaticamente na 1ª execução.
   - **Histórico SQLite** (Round J): registro/feedback/listagem/busca por tag,
     estatísticas com taxa de aprovação, padrões com sazonalidade, sugestões
     proativas com calendário fiscal — 15 testes
+  - **Auto-record middleware** (Round K): opt-in via header, só /calc/*, só 2xx,
+    tags inferidas do path, body preservado, best-effort em CNPJ inválido — 11 testes
   - Edge cases: validação Pydantic, propagação de erros do engine
 
 ```bash
-cd api && python3 -m pytest tests/ -v   # 120 passed in 0.46s
+cd api && python3 -m pytest tests/ -v   # 131 passed in 0.39s
 ```
 
 ## Arquitetura
