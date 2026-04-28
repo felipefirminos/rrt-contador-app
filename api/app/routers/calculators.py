@@ -15,10 +15,12 @@ from app.schemas.calculators import (
     HoraExtraRequest,
     IRPFRequest,
     MEIResumoRequest,
+    PrescricaoRequest,
     ProlaboreRequest,
     RescisaoRequest,
     SimplesDASRequest,
     SugerirAnexoRequest,
+    Tema69Request,
 )
 from app.services import engine
 
@@ -142,6 +144,31 @@ def darf_buscar(req: DarfBuscaRequest) -> dict:
 @router.post("/darf/regime")
 def darf_regime(req: DarfRegimeRequest) -> dict:
     return engine.darf_listar_regime(req.regime)
+
+
+@router.post("/recuperacao/tema-69")
+def tema_69(req: Tema69Request) -> dict:
+    """STF Tema 69 — exclusão do ICMS da base PIS/COFINS."""
+    payload = req.model_dump()
+    result = engine.calc_tema_69(
+        operacoes=payload["operacoes"],
+        tem_acao_pre_15_03_2017=payload["tem_acao_pre_15_03_2017"],
+    )
+    if "erro" in result:
+        raise HTTPException(status_code=422, detail=result["erro"])
+    return result
+
+
+@router.post("/recuperacao/prescricao")
+def prescricao(req: PrescricaoRequest) -> dict:
+    """Prescrição quinquenal LC 118/2005."""
+    result = engine.verificar_prescricao(
+        data_pagamento=req.data_pagamento,
+        data_referencia=req.data_referencia,
+    )
+    if "erro" in result:
+        raise HTTPException(status_code=422, detail=result["erro"])
+    return result
 
 
 @router.post("/cbs-ibs")

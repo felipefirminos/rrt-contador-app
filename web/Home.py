@@ -28,20 +28,43 @@ else:
 
 st.markdown("---")
 
-st.subheader("Calculadoras disponíveis (v0.3)")
+st.subheader("Calculadoras disponíveis (v0.4 — 14 ferramentas)")
 st.markdown(
     """
-    | Calculadora | Página | Use quando | Base legal |
-    |---|---|---|---|
-    | **DAS Simples Nacional** | `Simples Nacional` | Apurar DAS mensal, Fator R, sublimite. Inclui sugeridor de Anexo para CNAEs ambíguos de engenharia. | LC 123/2006, Res. CGSN 140/2018 |
-    | **Pró-labore** | `Pro labore` | INSS sócio (11%) + CPP + IRRF + custo total empresa. | IN RFB 971/2009, Lei 15.270/2025 |
-    | **Comparativo de Regimes** | `Comparativo Regimes` | Simples × Presumido × Lucro Real (ano completo). | Múltiplas (LC 123, RIR, etc.) |
-    | **Rescisão** | `Rescisao` | 4 tipos (s/ JC, pedido, JC, acordo 484-A). | CLT 477-484-A, Lei 12.506 |
-    | **Folha em Lote** | `Folha Batch` | N empregados → guias GPS/FGTS/DARF 0561. | CLT, Lei 8.212, Lei 8.036 |
-    | **Distribuição de Lucros** | `Distribuicao Lucros` | IRRF 10%, regra de transição, alerta Simples. | Lei 15.270/2025 + Lei 9.249 |
-    | **IRPF — Posição Anual** | `IRPF` | CLT + deduções + carnê-leão + ganho de capital. | Lei 9.250/95 + Lei 15.270/2025 + RIR/2018 |
-    | **CBS / IBS — Reforma** | `CBS IBS` | Operação 2026-2033 + projeção da transição. | EC 132/2023 + LC 214/2025 |
-    | **Q&A com LLM** | `Chat` | Pergunte: o assistente cita base legal e chama todas as 9 ferramentas como tools. | SKILL.md cacheado |
+    **Tributário (Pessoa Jurídica)**
+
+    | Calculadora | Página | Base legal |
+    |---|---|---|
+    | DAS Simples Nacional | `Simples Nacional` | LC 123/2006, Res. CGSN 140/2018 |
+    | Pró-labore | `Pro labore` | IN RFB 971/2009, Lei 15.270/2025 |
+    | Comparativo de Regimes | `Comparativo Regimes` | LC 123, RIR/2018 |
+    | Distribuição de Lucros | `Distribuicao Lucros` | Lei 15.270/2025 + Lei 9.249 |
+    | MEI (LC 188/2021) | `MEI` | LC 123/2006 + LC 188/2021 |
+    | CBS / IBS Reforma | `CBS IBS` | EC 132/2023 + LC 214/2025 |
+    | Recuperação tributária (Tema 69 + prescrição) | `Recuperacao` | RE 574.706 + LC 118/2005 |
+    | Códigos DARF/GPS/DAS | `DARF Codes` | RFB + 27+ códigos |
+
+    **Trabalhista (Fluxo 3 SKILL.md)**
+
+    | Calculadora | Página | Base legal |
+    |---|---|---|
+    | Rescisão (4 tipos) | `Rescisao` | CLT 477-484-A, Lei 12.506 |
+    | Folha em Lote | `Folha Batch` | CLT + Lei 8.212 + 8.036 |
+    | 13º Salário | `13o` | Lei 4.090/1962 + CF 7° VIII |
+    | Férias + 1/3 (abono isento) | `Ferias` | CLT 129-153 + Súmula 386 TST |
+    | Hora extra + DSR | `Hora Extra` | CLT 59 + 70 + Lei 605/49 |
+
+    **Pessoa Física**
+
+    | Calculadora | Página | Base legal |
+    |---|---|---|
+    | IRPF — Posição Anual | `IRPF` | Lei 9.250/95 + Lei 15.270/2025 + RIR/2018 |
+
+    **Q&A**
+
+    | Página | Use |
+    |---|---|
+    | `Chat` | Pergunte qualquer coisa — o assistente cita base legal e chama as 14 calculadoras como tools |
     """
 )
 
@@ -55,17 +78,15 @@ st.caption(
 
 st.markdown(
     """
-    - 13º salário — `calc_13o.py`
-    - Férias — `calc_ferias.py`
-    - Hora extra — `calc_hora_extra.py`
-    - IRPF integrado — `calc_irpf_integrado.py` (carnê-leão, ganho de capital)
     - DIFAL ICMS — `calc_difal.py`
     - ICMS-ST — `calc_icms_st.py`
     - ISS — `calc_iss.py`
-    - Lucro Presumido / Lucro Real / MEI — `calc_presumido.py` / `calc_lucro_real.py` / `calc_mei.py`
+    - Lucro Presumido / Lucro Real (apuração detalhada) — `calc_presumido.py` / `calc_lucro_real.py`
     - Ganho de capital (imóvel, veículo, crypto, ETF exterior)
-    - CBS/IBS Reforma Tributária — `calc_cbs_ibs.py`
-    - Recuperação tributária + PER/DCOMP — `recuperacao_tributaria/`
+    - Tema 779 STJ (insumo gerador de crédito) — `calcular_tema_779.py`
+    - PER/DCOMP (template) — `templates/template_perdcomp.md`
     - Parser DAS PDF / NF-e XML
+    - Carnê-leão isolado — `calc_carne_leao.py`
+    - Histórico de cálculos por cliente/CNPJ
     """
 )

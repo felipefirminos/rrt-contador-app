@@ -295,3 +295,30 @@ class DarfBuscaRequest(BaseModel):
 
 class DarfRegimeRequest(BaseModel):
     regime: RegimeDarf
+
+
+# ─── Recuperação Tributária (Tema 69 + prescrição) ────────────────
+
+RegimeTema69 = Literal["LUCRO_REAL", "LUCRO_PRESUMIDO"]
+
+
+class OperacaoTema69(BaseModel):
+    competencia: str = Field(..., description="YYYY-MM-DD ou YYYY-MM (1º dia)")
+    receita_bruta: float = Field(..., gt=0)
+    icms_destacado: float = Field(..., ge=0)
+    regime: RegimeTema69
+
+
+class Tema69Request(BaseModel):
+    operacoes: list[OperacaoTema69] = Field(..., min_length=1)
+    tem_acao_pre_15_03_2017: bool = Field(
+        False,
+        description="Se a empresa tinha ação ajuizada antes de 15/03/2017 (libera modulação)",
+    )
+
+
+class PrescricaoRequest(BaseModel):
+    data_pagamento: str = Field(..., description="YYYY-MM-DD")
+    data_referencia: Optional[str] = Field(
+        None, description="Data do protocolo (default: hoje)",
+    )

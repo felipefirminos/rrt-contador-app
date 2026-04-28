@@ -96,6 +96,22 @@ def darf_listar_regime(regime: str) -> dict:
     return _post("/calc/darf/regime", {"regime": regime})
 
 
+def calc_tema_69(operacoes: list[dict[str, Any]],
+                 tem_acao_pre_15_03_2017: bool = False) -> dict:
+    return _post("/calc/recuperacao/tema-69", {
+        "operacoes": operacoes,
+        "tem_acao_pre_15_03_2017": tem_acao_pre_15_03_2017,
+    })
+
+
+def verificar_prescricao(data_pagamento: str,
+                         data_referencia: str | None = None) -> dict:
+    return _post("/calc/recuperacao/prescricao", {
+        "data_pagamento": data_pagamento,
+        "data_referencia": data_referencia,
+    })
+
+
 def calc_folha_batch(empregados: list[dict[str, Any]], regime: str = "presumido_real",
                      competencia: str | None = None, rat_pct: float = 2.0,
                      fap: float = 1.0) -> dict:

@@ -205,6 +205,88 @@ class TestIRPFIntegrado:
         assert "ganhos_capital" in r.json()
 
 
+# Recuperação Tributária — Tema 69 STF + Prescrição (LC 118/2005)
+class TestRecuperacaoTributaria:
+    def test_tema_69_presumido_calcula_3_65_pct(self, client):
+        """Lucro Presumido cumulativo: PIS 0,65% + COFINS 3% = 3,65% sobre ICMS."""
+        r = client.post("/calc/recuperacao/tema-69", json={
+            "operacoes": [{
+                "competencia": "2024-01-01",
+                "receita_bruta": 500000,
+                "icms_destacado": 60000,
+                "regime": "LUCRO_PRESUMIDO",
+            }],
+        })
+        d = r.json()
+        # PIS = 60000 × 0.65% = 390; COFINS = 60000 × 3% = 1800
+        assert d["total_pis_recuperavel"] == 390.0
+        assert d["total_cofins_recuperavel"] == 1800.0
+        assert d["total_geral"] == 2190.0
+        assert d["competencias_elegiveis"] == 1
+
+    def test_tema_69_real_calcula_9_25_pct(self, client):
+        """Lucro Real não-cumulativo: PIS 1,65% + COFINS 7,6% = 9,25%."""
+        r = client.post("/calc/recuperacao/tema-69", json={
+            "operacoes": [{
+                "competencia": "2024-04-01",
+                "receita_bruta": 500000,
+                "icms_destacado": 72000,
+                "regime": "LUCRO_REAL",
+            }],
+        })
+        d = r.json()
+        # PIS = 72000 × 1.65% = 1188; COFINS = 72000 × 7.6% = 5472
+        assert d["total_pis_recuperavel"] == 1188.0
+        assert d["total_cofins_recuperavel"] == 5472.0
+
+    def test_tema_69_pre_modulacao_sem_acao_bloqueado(self, client):
+        """Modulação STF 13/05/2021: pré-15/03/2017 sem ação → não recupera."""
+        r = client.post("/calc/recuperacao/tema-69", json={
+            "operacoes": [{
+                "competencia": "2016-06-01",
+                "receita_bruta": 500000,
+                "icms_destacado": 60000,
+                "regime": "LUCRO_PRESUMIDO",
+            }],
+        })
+        d = r.json()
+        assert d["total_geral"] == 0.0
+        assert d["competencias_bloqueadas"] == 1
+
+    def test_tema_69_pre_modulacao_com_acao_libera(self, client):
+        r = client.post("/calc/recuperacao/tema-69", json={
+            "operacoes": [{
+                "competencia": "2016-06-01",
+                "receita_bruta": 500000,
+                "icms_destacado": 60000,
+                "regime": "LUCRO_PRESUMIDO",
+            }],
+            "tem_acao_pre_15_03_2017": True,
+        })
+        d = r.json()
+        assert d["total_geral"] == 2190.0
+        assert d["competencias_elegiveis"] == 1
+
+    def test_prescricao_pagamento_recente_ok(self, client):
+        r = client.post("/calc/recuperacao/prescricao",
+                        json={"data_pagamento": "2024-01-15"})
+        d = r.json()
+        assert d["prescrito"] is False
+        assert d["dias_restantes"] > 0
+
+    def test_prescricao_pagamento_antigo_prescrito(self, client):
+        r = client.post("/calc/recuperacao/prescricao",
+                        json={"data_pagamento": "2018-01-15"})
+        d = r.json()
+        assert d["prescrito"] is True
+        assert d["dias_restantes"] < 0
+
+    def test_prescricao_data_futura_rejeitada(self, client):
+        r = client.post("/calc/recuperacao/prescricao",
+                        json={"data_pagamento": "2099-01-01"})
+        assert r.status_code == 422
+
+
 # MEI — LC 123/2006 + LC 188/2021
 class TestMEI:
     def test_comercio_dentro_do_limite(self, client):

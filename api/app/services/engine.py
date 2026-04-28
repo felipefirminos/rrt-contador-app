@@ -20,6 +20,13 @@ from app.config import SCRIPTS_DIR
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
+# Recuperação tributária (Tema 69, Tema 779, prescrição) — módulos separados
+from app.config import ENGINE_DIR  # noqa: E402
+
+REC_TRIB_DIR = ENGINE_DIR / "recuperacao_tributaria" / "scripts"
+if REC_TRIB_DIR.exists() and str(REC_TRIB_DIR) not in sys.path:
+    sys.path.insert(0, str(REC_TRIB_DIR))
+
 
 from calc_simples import calcular_das as _calc_das  # noqa: E402
 from calc_simples import sugerir_anexo_engenharia as _sugerir_anexo  # noqa: E402
@@ -39,6 +46,21 @@ from calc_mei import resumo_mei as _resumo_mei  # noqa: E402
 from calc_darf_codes import consultar_darf as _consultar_darf  # noqa: E402
 from calc_darf_codes import listar_por_regime as _darf_regime  # noqa: E402
 from calc_darf_codes import buscar as _darf_buscar  # noqa: E402
+
+# Recuperação tributária — só importa se a pasta existe
+try:
+    from calcular_tema_69 import (  # noqa: E402
+        OperacaoMensal as _OperacaoTema69,
+        calcular_credito_mensal as _calc_tema_69_mensal,
+        calcular_total as _calc_tema_69_total,
+    )
+    from verificar_prescricao import (  # noqa: E402
+        verificar_prescricao as _verificar_prescricao,
+        calcular_periodo_recuperavel as _periodo_recuperavel,
+    )
+    REC_TRIB_DISPONIVEL = True
+except ImportError:
+    REC_TRIB_DISPONIVEL = False
 
 
 def calc_simples_das(
@@ -238,6 +260,105 @@ def resumo_mei(
         receita_bruta_anual=receita_bruta_anual,
         meses_atividade=meses_atividade,
     )
+
+
+def calc_tema_69(
+    operacoes: list[dict[str, Any]],
+    tem_acao_pre_15_03_2017: bool = False,
+) -> dict[str, Any]:
+    """Tema 69 STF — exclusão do ICMS da base de PIS/COFINS.
+
+    Cada operação recebe: competencia (YYYY-MM-DD ou YYYY-MM), receita_bruta,
+    icms_destacado, regime ('LUCRO_REAL' ou 'LUCRO_PRESUMIDO').
+    """
+    if not REC_TRIB_DISPONIVEL:
+        return {"erro": "Módulo de recuperação tributária não disponível"}
+
+    from datetime import date as _date
+    from decimal import Decimal as _Dec
+
+    ops_engine = []
+    for op in operacoes:
+        comp_raw = op["competencia"]
+        # Aceita "YYYY-MM-DD" ou "YYYY-MM"
+        if isinstance(comp_raw, str):
+            parts = comp_raw.split("-")
+            comp = _date(int(parts[0]), int(parts[1]), 1)
+        else:
+            comp = comp_raw
+        ops_engine.append(_OperacaoTema69(
+            competencia=comp,
+            receita_bruta=_Dec(str(op["receita_bruta"])),
+            icms_destacado=_Dec(str(op["icms_destacado"])),
+            regime=op["regime"].upper(),
+        ))
+
+    raw = _calc_tema_69_total(ops_engine, tem_acao_pre_15_03_2017=tem_acao_pre_15_03_2017)
+
+    # Serializa Decimals → float, dataclasses → dict
+    def _ser_resultado(r):
+        return {
+            "competencia": r.competencia.isoformat(),
+            "regime": r.regime,
+            "receita_bruta": float(r.receita_bruta),
+            "icms_destacado": float(r.icms_destacado),
+            "pis_pago_indevido": float(r.pis_pago_indevido),
+            "cofins_pago_indevido": float(r.cofins_pago_indevido),
+            "total_recuperavel": float(r.total_recuperavel),
+            "dentro_modulacao": r.dentro_modulacao,
+            "observacao": r.observacao,
+        }
+
+    return {
+        "resultados_mensais": [_ser_resultado(r) for r in raw["resultados_mensais"]],
+        "total_pis_recuperavel": float(raw["total_pis_recuperavel"]),
+        "total_cofins_recuperavel": float(raw["total_cofins_recuperavel"]),
+        "total_geral": float(raw["total_geral"]),
+        "competencias_elegiveis": raw["competencias_elegiveis"],
+        "competencias_bloqueadas": raw["competencias_bloqueadas"],
+        "marco_modulacao": "2017-03-15",
+        "tem_acao_pre_15_03_2017": tem_acao_pre_15_03_2017,
+        "aviso_selic": (
+            "⚠️ Valor é PRINCIPAL apenas. Aplicar atualização pela SELIC "
+            "(art. 39, §4º Lei 9.250/95) antes do pedido de restituição/compensação."
+        ),
+        "base_legal": (
+            "STF Tema 69 — RE 574.706 (transitado 2017, modulação 13/05/2021); "
+            "LC 118/2005 art. 3º (prescrição 5 anos); Lei 9.430/96 (PER/DCOMP)"
+        ),
+    }
+
+
+def verificar_prescricao(
+    data_pagamento: str,
+    data_referencia: str | None = None,
+) -> dict[str, Any]:
+    """Verifica prescrição quinquenal (LC 118/2005)."""
+    if not REC_TRIB_DISPONIVEL:
+        return {"erro": "Módulo não disponível"}
+    from datetime import date as _date
+    parts_pag = data_pagamento.split("-")
+    pag = _date(int(parts_pag[0]), int(parts_pag[1]), int(parts_pag[2]))
+    ref = None
+    if data_referencia:
+        parts_ref = data_referencia.split("-")
+        ref = _date(int(parts_ref[0]), int(parts_ref[1]), int(parts_ref[2]))
+    try:
+        r = _verificar_prescricao(data_pagamento=pag, data_referencia=ref)
+    except ValueError as exc:
+        return {"erro": str(exc)}
+    inicio, fim = _periodo_recuperavel(ref)
+    return {
+        "data_pagamento": r.data_pagamento.isoformat(),
+        "data_corte": r.data_corte.isoformat(),
+        "data_limite_pleito": r.data_limite_pleito.isoformat(),
+        "dias_restantes": r.dias_restantes,
+        "prescrito": r.prescrito,
+        "observacao": r.observacao,
+        "periodo_recuperavel_inicio": inicio.isoformat(),
+        "periodo_recuperavel_fim": fim.isoformat(),
+        "base_legal": "LC 118/2005, art. 3º; CTN art. 168 I",
+    }
 
 
 def darf_consultar(tributo: str) -> dict[str, Any]:
@@ -553,6 +674,57 @@ CALCULATOR_TOOLS = [
         },
     },
     {
+        "name": "calc_tema_69",
+        "description": (
+            "STF Tema 69 (RE 574.706) — exclusão do ICMS da base de PIS/COFINS. "
+            "Calcula crédito recuperável de PIS/COFINS pagos indevidamente sobre o "
+            "ICMS destacado. Modulação STF 13/05/2021: créditos a partir de 15/03/2017 "
+            "são automáticos; pré-modulação só com ação ajuizada antes daquela data. "
+            "Regimes: LUCRO_REAL (não-cumulativo: PIS 1,65%, COFINS 7,6%) e LUCRO_PRESUMIDO "
+            "(cumulativo: PIS 0,65%, COFINS 3%). Simples e MEI ficam de fora. Retorna "
+            "PRINCIPAL — atualização SELIC é separada (art. 39 §4 Lei 9.250/95)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "operacoes": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "competencia": {"type": "string", "description": "YYYY-MM-DD ou YYYY-MM"},
+                            "receita_bruta": {"type": "number"},
+                            "icms_destacado": {"type": "number"},
+                            "regime": {"type": "string", "enum": ["LUCRO_REAL", "LUCRO_PRESUMIDO"]},
+                        },
+                        "required": ["competencia", "receita_bruta", "icms_destacado", "regime"],
+                    },
+                },
+                "tem_acao_pre_15_03_2017": {"type": "boolean", "default": False,
+                    "description": "Se True, libera períodos pré-modulação"},
+            },
+            "required": ["operacoes"],
+        },
+    },
+    {
+        "name": "verificar_prescricao",
+        "description": (
+            "Verifica prescrição quinquenal (LC 118/2005 art. 3º) para pleitos de "
+            "restituição/compensação de tributos pagos indevidamente. Retorna se está "
+            "prescrito, dias restantes, data limite. Use ANTES de qualquer estudo de "
+            "recuperação tributária — pagamento prescrito não recupera."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "data_pagamento": {"type": "string", "description": "YYYY-MM-DD"},
+                "data_referencia": {"type": "string",
+                    "description": "Data do protocolo (default: hoje)"},
+            },
+            "required": ["data_pagamento"],
+        },
+    },
+    {
         "name": "darf_listar_regime",
         "description": (
             "Lista todos os códigos DARF aplicáveis a um regime tributário "
@@ -757,6 +929,8 @@ TOOL_DISPATCH = {
     "darf_consultar": darf_consultar,
     "darf_listar_regime": darf_listar_regime,
     "darf_buscar": darf_buscar,
+    "calc_tema_69": calc_tema_69,
+    "verificar_prescricao": verificar_prescricao,
     "calc_distribuicao_lucros": calc_distribuicao_lucros,
     "calc_irpf_integrado": calc_irpf_integrado,
     "calc_cbs_ibs": calc_cbs_ibs,

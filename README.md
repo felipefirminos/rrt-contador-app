@@ -9,35 +9,54 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
   system prompt e as calculadoras expostas como **tools** — o assistente
   chama as funções reais ao invés de improvisar números
 
-## Calculadoras expostas (v0.3 — 9 ferramentas, ~40 ainda no engine)
+## Calculadoras expostas (v0.4 — 14 ferramentas)
 
-| Endpoint | Calc | Empiricamente validado |
-|---|---|---|
-| `POST /calc/simples-das` | DAS + Fator R + sublimite | RBT12 R$900K, Anexo V folha R$300K → migra Anexo III |
-| `POST /calc/sugerir-anexo-engenharia` | CNAE 71.12, 71.11, 43.29 (SKILL.md §5) | Executa obras → IV; consultoria pura → III/V |
-| `POST /calc/prolabore` | INSS 11% + CPP + IRRF (Lei 15.270) | R$5K/Presumido → líquido R$4.450, custo R$6K |
-| `POST /calc/comparativo-regimes` | Simples × Presumido × Lucro Real | R$2.4M, margem 25%, 1 sócio R$8K + R$30K → recomenda Presumido |
-| `POST /calc/rescisao` | 4 tipos (s/ JC, pedido, JC, acordo 484-A) | 5 anos R$5.8K → bruto R$32.622, multa R$12K |
-| `POST /calc/folha-batch` | N empregados, GPS+FGTS+DARF 0561 | 3 empregados → bruto R$13.6K, GPS R$5.147,41 |
-| `POST /calc/distribuicao-lucros` | Lei 15.270/2025 + transição | R$50.001 → líquido R$45.000,90 (efeito-salto) |
-| `POST /calc/irpf` | Posição anual PF (CLT + deduções + carnê-leão + gcap) | R$8K/mês CLT + 1 dep + R$5K saúde → ZERADO |
-| `POST /calc/cbs-ibs` | EC 132/2023 + LC 214/2025 | 2026: CBS 0,9% + IBS 0,1%; 2033: ~26,5% combinada |
-| `POST /calc/cbs-ibs/projecao` | Projeção 2026-2033 ano-a-ano | Mostra carga em cada ano da transição |
-| `POST /chat` | Q&A LLM com tools | 9 ferramentas expostas (8 calc + 1 sugeridor) |
+### Tributário PJ
+| Endpoint | Validação empírica |
+|---|---|
+| `POST /calc/simples-das` | Anexo V folha 33% → migra Anexo III |
+| `POST /calc/sugerir-anexo-engenharia` | CNAE 71.12 executa obras → Anexo IV |
+| `POST /calc/prolabore` | R$5K/Presumido → líquido R$4.450, custo R$6K |
+| `POST /calc/comparativo-regimes` | R$2.4M serv 25% → Presumido vence |
+| `POST /calc/distribuicao-lucros` | R$50.001 → líquido R$45.000,90 (efeito-salto) |
+| `POST /calc/mei/resumo` | Comércio R$60K → DAS R$82,05; caminhoneiro R$150K → R$195,52 |
+| `POST /calc/cbs-ibs` | 2026 CBS 0,9% + IBS 0,1%; 2033 ~26,5% combinada |
+| `POST /calc/cbs-ibs/projecao` | Projeção 2026-2033 ano-a-ano |
+| `POST /calc/recuperacao/tema-69` | LP R$60K ICMS → recupera R$2.190 (PIS R$390 + COFINS R$1.800) |
+| `POST /calc/recuperacao/prescricao` | Pago 2018 → prescrito; 2024 → 993 dias restantes |
+| `POST /calc/darf/{consultar,buscar,regime}` | 27+ códigos: IRPJ, CSLL, IRRF 0561, INSS, FGTS, DAS, etc. |
+
+### Trabalhista (CLT)
+| Endpoint | Validação empírica |
+|---|---|
+| `POST /calc/rescisao` | 5 anos R$5.8K → bruto R$32.622, multa R$12K (484-A: 50/20/80) |
+| `POST /calc/folha-batch` | 3 empregados → GPS R$5.147 + FGTS R$1.088 + DARF 0561 R$646 |
+| `POST /calc/decimo-terceiro` | R$5K × 12 → 1ª R$2.500 + 2ª R$1.998 + FGTS R$400 |
+| `POST /calc/ferias` | 20+10 abono → base_INSS = férias gozadas+1/3 (CLT 144) |
+| `POST /calc/hora-extra` | R$5K/220h → hora R$22,73; HE 50% × 10h = R$340,91 |
+
+### Pessoa Física
+| `POST /calc/irpf` | R$8K CLT + 1 dep + R$5K saúde → ZERADO |
+
+### LLM
+| `POST /chat` + `POST /chat/stream` | 14 ferramentas como Anthropic tools |
 
 ## Qualidade
 
 - **57 scripts upstream passam seus testes próprios** (~1835 asserções) na cópia em `engine/`
-- **37 testes pytest** na API (`api/tests/`) cobrindo:
+- **57 testes pytest** na API (`api/tests/`) cobrindo:
   - Auditoria contra os 7 erros recorrentes do SKILL.md (§1 CPP, §2 INSS 11%, §3 controvérsia Simples, §4 efeito-salto, §5 engenharia, §6 escrituração, §7 transição 2025-2028)
   - Incidências de rescisão (CLT 144 — férias indenizadas isentas)
   - Guias da folha (vencimentos GPS dia 20, FGTS dia 7, DARF 0561)
   - IRPF integrado (cenários CLT, vazio, gcap puro)
   - CBS/IBS (alíquotas 2026/2033, setores específicos, projeção)
+  - 13º (1ª/2ª parcelas, FGTS), Férias (abono isento — CLT 144), HE (50/100%, DSR)
+  - MEI (R$81K, excesso 20%, caminhoneiro), DARF (códigos por tributo/regime/busca)
+  - Recuperação tributária (Tema 69 modulação, prescrição quinquenal)
   - Edge cases: validação Pydantic, propagação de erros do engine
 
 ```bash
-cd api && python3 -m pytest tests/ -v   # 37 passed in 0.10s
+cd api && python3 -m pytest tests/ -v   # 57 passed in 0.16s
 ```
 
 ## Arquitetura
