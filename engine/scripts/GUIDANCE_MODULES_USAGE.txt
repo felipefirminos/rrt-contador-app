@@ -1,0 +1,205 @@
+================================================================================
+GUIDANCE-MODE MODULES: calc_gcap_crypto.py & calc_gcap_etf_exterior.py
+================================================================================
+
+OVERVIEW
+--------
+These modules produce CHECKLISTS and ALERTS for manual accountant filling.
+They do NOT calculate taxes (Judge vetoed automated calculation for crypto/ETF).
+
+Each module returns a dict with:
+  - modo: "GUIDANCE" (always)
+  - checklist: list of items to verify manually
+  - alertas: risk alerts and compliance warnings
+  - regras_resumo: key rules and thresholds
+  - campos_preenchimento: fields for accountant to fill manually
+  - base_legal: relevant laws and resolutions
+  - disclaimer: advisory text
+
+================================================================================
+1. CALC_GCAP_CRYPTO.PY
+================================================================================
+
+Legal basis:
+  - IN RFB 1.888/2019, Art. 5° (obligation to declare > R$ 5K)
+  - Exemption: total monthly sales ≤ R$ 35,000 (guidance regime)
+
+Main functions:
+
+  gerar_checklist_crypto(operacoes=None, saldo_31dez=None) -> dict
+    operacoes: optional list of dicts with {tipo, data, valor_brl, quantidade, exchange}
+               tipo: "compra" or "venda"
+    saldo_31dez: optional year-end balance in BRL
+    
+    Returns dict with checklists, alerts, and manual-fill fields
+
+  verificar_isencao_mensal(vendas_mes_brl: float) -> bool
+    Returns True if sales <= R$ 35,000 (exempt), False otherwise
+
+Usage examples:
+
+  # Basic guidance checklist
+  python3 -c "import calc_gcap_crypto; import json; \
+    result = calc_gcap_crypto.gerar_checklist_crypto(); \
+    print(json.dumps(result, indent=2, ensure_ascii=False))"
+
+  # With transaction history
+  python3 -c "import calc_gcap_crypto; import json; \
+    ops = [ \
+      {'tipo': 'compra', 'data': '2026-01-15', 'valor_brl': 10000, 'quantidade': 0.5, 'exchange': 'Binance'}, \
+      {'tipo': 'venda', 'data': '2026-01-20', 'valor_brl': 11000, 'quantidade': 0.5, 'exchange': 'Binance'} \
+    ]; \
+    result = calc_gcap_crypto.gerar_checklist_crypto(operacoes=ops, saldo_31dez=5000); \
+    print(json.dumps(result, indent=2, ensure_ascii=False))"
+
+  # Run tests
+  python3 calc_gcap_crypto.py --teste
+
+Key checklist items:
+  1. Verify exchange is registered with CVM/Bacen
+  2. Apply FIFO method (mandatory)
+  3. Calculate gain/loss PER MONTH (civil calendar)
+  4. Verify monthly exemption: total sales <= R$ 35K?
+  5. If sales > R$ 35K in any month: activate taxation (15%)
+  6. Validate BRL conversion using PTAX closing rate
+  7. Check if year-end balance > R$ 5,000 (reporting obligation)
+  8. Deduct transaction costs from gain
+  9. Accumulate losses for compensation
+
+Alerts generated:
+  - >30 trades/year: audit risk
+  - Multiple exchanges: consolidation risk
+  - Sales > R$ 35K/month: tributacao ativa
+  - Balance > R$ 5K: reporting requirement
+  - Balance > R$ 100K: critical compliance review
+
+================================================================================
+2. CALC_GCAP_ETF_EXTERIOR.PY
+================================================================================
+
+Legal basis:
+  - Lei 14.754/2023 (new regime for offshore investments)
+  - IN RFB 1.585/2015 (foreign investment reporting)
+  - Art. 26 Lei 9.250/95 (reciprocidade — NÃO existe tratado Brasil-EUA)
+
+Main functions:
+
+  gerar_checklist_etf_exterior(ativos=None, pais_origem="EUA") -> dict
+    ativos: optional list of dicts with {ticker, tipo, custo_usd, valor_atual_usd, dividendos_usd}
+    pais_origem: country of origin (default: "EUA", supports: "Canada", "UK")
+    
+    Returns dict with checklists, treaty info, alerts, and manual-fill fields
+
+  obter_tratado_bitributacao(pais_origem: str) -> dict
+    Returns tax treaty details for given country
+    Includes: withholding tax rates, treaty credit availability, treaty info
+
+Usage examples:
+
+  # Basic guidance for EUA (default)
+  python3 -c "import calc_gcap_etf_exterior; import json; \
+    result = calc_gcap_etf_exterior.gerar_checklist_etf_exterior(); \
+    print(json.dumps(result, indent=2, ensure_ascii=False))"
+
+  # With assets and specific country
+  python3 -c "import calc_gcap_etf_exterior; import json; \
+    ativos = [ \
+      {'ticker': 'SPY', 'tipo': 'ETF', 'custo_usd': 100, 'valor_atual_usd': 110, 'dividendos_usd': 2}, \
+      {'ticker': 'AAPL', 'tipo': 'Acao', 'custo_usd': 150, 'valor_atual_usd': 160, 'dividendos_usd': 1} \
+    ]; \
+    result = calc_gcap_etf_exterior.gerar_checklist_etf_exterior(ativos=ativos, pais_origem='EUA'); \
+    print(json.dumps(result, indent=2, ensure_ascii=False))"
+
+  # Run tests
+  python3 calc_gcap_etf_exterior.py --teste
+
+Key checklist items:
+  1. Validate ETF vs mutual fund distinction (different rates)
+  2. Check acquisition date for correct rate:
+     - Pre-2023-12-31: 15% rate
+     - From 2023-01-01 onwards: 10% rate (Lei 14.754)
+  3. Reduced rate (10%) expires 2026-12-31
+  4. Convert gains (USD -> BRL) using PTAX of SALE
+  5. Calculate currency gain SEPARATELY from capital gain
+  6. Verify intermediary registration with CVM
+  7. Consider tax treaty:
+     - Withholding tax in source country
+     - Brazil treaty credit availability
+  8. Dividend income: treaty may reduce withholding
+  9. Document: Form 1099 (USA), custodian cert, trade notes
+  10. Report IF (Foreign Investments form) if balance > USD 100K
+
+Alerts generated:
+  - >20 assets: portfolio complexity
+  - Mixed asset types: rate verification required
+  - Dividend income: withholding tax credit needed
+  - Losses detected: compensation consolidation
+  - Lei 14.754 transition: regime expires 31/12/2026
+  - Balance > USD 100K: compliance documentation
+
+Supported countries:
+  - "EUA" (Estados Unidos): SEM TRATADO. Withholding 30%. Alívio via Art. 26 Lei 9.250/95 (reciprocidade).
+  - "Canada": Tratado 1985, 15% dividendos, 10% juros, crédito integral.
+  - "UK": Tratado 1973, 15% dividendos, 12% juros, crédito integral.
+  - Other: default 25% withholding, verificar tratado vigente.
+
+================================================================================
+INTEGRATION WITH EXISTING MODULES
+================================================================================
+
+Both modules follow the pattern established in calc_gcap_imovel.py and
+calc_gcap_veiculo.py:
+
+  - #!/usr/bin/env python3 header
+  - Load gcap_rules.json from os.path.join(SCRIPT_DIR, "tabelas", ...)
+  - rodar_testes() function with PASSOU/FALHOU format
+  - --teste CLI flag for test execution
+  - Return dicts (not calculated values)
+
+File structure:
+  /sessions/focused-trusting-brahmagupta/rrt-group-contador-v3/scripts/
+    - calc_gcap_crypto.py (17 KB, 15 tests)
+    - calc_gcap_etf_exterior.py (21 KB, 15 tests)
+    - tabelas/gcap_rules.json (rules database)
+
+All tests pass (15/15 each).
+
+================================================================================
+TEST COVERAGE
+================================================================================
+
+calc_gcap_crypto.py (15 tests):
+  1. Basic checklist generation
+  2. Required sections present
+  3. Exemption at R$ 34K
+  4. Exemption boundary at R$ 35K
+  5. Non-exempt at R$ 36K
+  6. With operacoes list
+  7. High-volume alert (>30 trades)
+  8. Multiple exchanges alert
+  9. Year-end balance alert
+  10. Large balance critical alert
+  11. Disclaimer contains "ORIENTACAO"
+  12. campos_preenchimento populated
+  13. Regras includes FIFO and R$ 35K
+  14. Return type is dict
+  15. Base legal populated
+
+calc_gcap_etf_exterior.py (15 tests):
+  1. Basic checklist generation
+  2. Required sections present
+  3. Default country (EUA)
+  4. Treaty info for EUA
+  5. Treaty info for Canada
+  6. With ativos list
+  7. Multiple asset types alert
+  8. Dividend income alert
+  9. Loss detection alert
+  10. Lei 14.754 transition alert
+  11. Disclaimer contains "ORIENTACAO"
+  12. campos_preenchimento populated
+  13. Regras includes PTAX and Lei 14.754
+  14. Return type is dict
+  15. Base legal populated
+
+================================================================================

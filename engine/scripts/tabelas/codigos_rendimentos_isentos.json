@@ -1,0 +1,83 @@
+{
+  "descricao": "Códigos de rendimentos isentos e não tributáveis — DIRPF exercício 2026 (AC 2025)",
+  "base_legal": "RIR/2018 Art. 35 a 39; Lei 12.431/2011 Art. 3°; Lei 15.270/2025; IN RFB 2.312/2026",
+  "nota": "Usar esta tabela para classificar CORRETAMENTE rendimentos isentos no dossiê IRPF. CRI/CRA/LCI/LCA NÃO são poupança (código 12).",
+  "vigencia_inicio": "2026-01-01",
+  "vigencia_ate": "2026-12-31",
+  "codigos": [
+    {
+      "codigo": "01",
+      "descricao": "Bolsa de estudo e pesquisa (Lei 9.250/95 Art. 26)",
+      "exemplos": ["Bolsa CAPES", "Bolsa CNPq", "Bolsa FAPESP"],
+      "observacao": "Somente bolsas sem contrapartida de serviços"
+    },
+    {
+      "codigo": "03",
+      "descricao": "Capital das apólices de seguro ou pecúlio pago por morte do segurado",
+      "exemplos": ["Seguro de vida", "Pecúlio por morte"],
+      "observacao": ""
+    },
+    {
+      "codigo": "04",
+      "descricao": "Indenizações por rescisão de contrato de trabalho e FGTS",
+      "exemplos": ["Multa 40% FGTS", "Saque FGTS", "Indenização adicional"],
+      "observacao": "Inclui aviso prévio indenizado"
+    },
+    {
+      "codigo": "05",
+      "descricao": "Lucros e dividendos recebidos (isentos até limite Lei 15.270/2025)",
+      "exemplos": ["Dividendos de ações", "Lucros distribuídos por PJ"],
+      "observacao": "Até R$ 50.000/mês isentos (Lei 15.270/2025). Acima: tributação exclusiva 10%"
+    },
+    {
+      "codigo": "06",
+      "descricao": "Rendimentos de debêntures incentivadas e CRI/CRA (Lei 12.431/2011)",
+      "exemplos": ["CRI (Certificado de Recebíveis Imobiliários)", "CRA (Certificado de Recebíveis do Agronegócio)", "Debêntures incentivadas de infraestrutura"],
+      "observacao": "Isento para pessoa física. NÃO classificar como código 12 (poupança). Base legal: Lei 12.431/2011 Art. 3°"
+    },
+    {
+      "codigo": "08",
+      "descricao": "Rendimentos de LCI e LCA",
+      "exemplos": ["LCI (Letra de Crédito Imobiliário)", "LCA (Letra de Crédito do Agronegócio)"],
+      "observacao": "Isento para pessoa física. Lei 11.033/2004 Art. 3°"
+    },
+    {
+      "codigo": "09",
+      "descricao": "Parcela isenta de proventos de aposentadoria (65+)",
+      "exemplos": ["Aposentadoria INSS para maiores de 65 anos"],
+      "observacao": "Limite mensal conforme tabela vigente"
+    },
+    {
+      "codigo": "12",
+      "descricao": "Rendimentos de caderneta de poupança",
+      "exemplos": ["Poupança Caixa", "Poupança Bradesco", "Poupança BB"],
+      "observacao": "SOMENTE caderneta de poupança. NÃO incluir CRI, CRA, LCI, LCA ou outras aplicações de renda fixa"
+    },
+    {
+      "codigo": "13",
+      "descricao": "Rendimentos de sócio ou titular de ME/EPP optante pelo Simples Nacional",
+      "exemplos": ["Distribuição de lucros Simples Nacional"],
+      "observacao": "Isento até o limite de presunção"
+    },
+    {
+      "codigo": "18",
+      "descricao": "Ganho de capital na alienação de imóvel residencial único (até R$ 440.000)",
+      "exemplos": ["Venda de único imóvel até R$ 440.000"],
+      "observacao": "Isenção do art. 23 da Lei 9.250/95"
+    },
+    {
+      "codigo": "26",
+      "descricao": "Outros rendimentos isentos e não tributáveis",
+      "exemplos": ["Nota Fiscal Paulista", "Nota Fiscal Gaúcha", "Restituições diversas"],
+      "observacao": "Código residual. Usar somente quando nenhum código específico se aplica"
+    }
+  ],
+  "regras_validacao": [
+    "CRI e CRA → código 06, NUNCA código 12",
+    "LCI e LCA → código 08, NUNCA código 12",
+    "Poupança → código 12, SOMENTE caderneta de poupança",
+    "Dividendos → código 05 (observar limite Lei 15.270/2025)",
+    "Se rendimento isento não se encaixa em nenhum código específico → código 26 (Outros)",
+    "Sempre validar base legal antes de classificar como isento"
+  ]
+}

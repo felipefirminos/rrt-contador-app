@@ -1,0 +1,123 @@
+{
+  "descricao": "Taxas PTAX venda — exercício fiscal 2026 (último dia útil de cada mês do ano-calendário 2025)",
+  "base_legal": "Art. 39 IN RFB 1.585/2015; Resolução BCB 1 de 2020",
+  "nota": "VALORES EXEMPLO PARA TESTE — confirmar no BCE/SGS (Sistema de Gerenciamento de Séries Temporais) antes de usar em produção. Estas são taxas de fechamento PTAX de venda para conversão de renda em moeda estrangeira na IRPF 2026.",
+  "vigencia_ate": "permanente",
+  "moeda": "USD",
+  "ano_calendario": 2025,
+  "exercicio_fiscal": 2026,
+  "fonte": "Banco Central do Brasil — PTAX de fechamento (taxa média de venda)",
+  "url_consulta": "https://www.bcb.gov.br/exibeMateria?materia=SGS",
+  "taxas": {
+    "2025-01": {
+      "data_referencia": "2025-01-31",
+      "ptax_venda": 5.28,
+      "ptax_venda_string": "5,28",
+      "fonte_consulta": "BCB/SGS série 10813",
+      "tipo": "taxa de fechamento",
+      "notas": "Valor estimado baseado em histórico"
+    },
+    "2025-02": {
+      "data_referencia": "2025-02-28",
+      "ptax_venda": 5.35,
+      "ptax_venda_string": "5,35",
+      "fonte_consulta": "BCB/SGS série 10813",
+      "tipo": "taxa de fechamento",
+      "notas": "Valor estimado baseado em histórico"
+    },
+    "2025-03": {
+      "data_referencia": "2025-03-31",
+      "ptax_venda": 5.42,
+      "ptax_venda_string": "5,42",
+      "fonte_consulta": "BCB/SGS série 10813",
+      "tipo": "taxa de fechamento",
+      "notas": "Valor estimado baseado em histórico"
+    },
+    "2025-04": {
+      "data_referencia": "2025-04-30",
+      "ptax_venda": 5.55,
+      "ptax_venda_string": "5,55",
+      "fonte_consulta": "BCB/SGS série 10813",
+      "tipo": "taxa de fechamento",
+      "notas": "Valor estimado baseado em histórico"
+    },
+    "2025-05": {
+      "data_referencia": "2025-05-30",
+      "ptax_venda": 5.62,
+      "ptax_venda_string": "5,62",
+      "fonte_consulta": "BCB/SGS série 10813",
+      "tipo": "taxa de fechamento",
+      "notas": "Valor estimado baseado em histórico"
+    },
+    "2025-06": {
+      "data_referencia": "2025-06-30",
+      "ptax_venda": 5.70,
+      "ptax_venda_string": "5,70",
+      "fonte_consulta": "BCB/SGS série 10813",
+      "tipo": "taxa de fechamento",
+      "notas": "Valor estimado baseado em histórico"
+    },
+    "2025-07": {
+      "data_referencia": "2025-07-31",
+      "ptax_venda": 5.76,
+      "ptax_venda_string": "5,76",
+      "fonte_consulta": "BCB/SGS série 10813",
+      "tipo": "taxa de fechamento",
+      "notas": "Valor estimado baseado em histórico"
+    },
+    "2025-08": {
+      "data_referencia": "2025-08-29",
+      "ptax_venda": 5.85,
+      "ptax_venda_string": "5,85",
+      "fonte_consulta": "BCB/SGS série 10813",
+      "tipo": "taxa de fechamento",
+      "notas": "Valor estimado baseado em histórico"
+    },
+    "2025-09": {
+      "data_referencia": "2025-09-30",
+      "ptax_venda": 5.78,
+      "ptax_venda_string": "5,78",
+      "fonte_consulta": "BCB/SGS série 10813",
+      "tipo": "taxa de fechamento",
+      "notas": "Valor estimado baseado em histórico"
+    },
+    "2025-10": {
+      "data_referencia": "2025-10-31",
+      "ptax_venda": 5.68,
+      "ptax_venda_string": "5,68",
+      "fonte_consulta": "BCB/SGS série 10813",
+      "tipo": "taxa de fechamento",
+      "notas": "Valor estimado baseado em histórico"
+    },
+    "2025-11": {
+      "data_referencia": "2025-11-28",
+      "ptax_venda": 5.55,
+      "ptax_venda_string": "5,55",
+      "fonte_consulta": "BCB/SGS série 10813",
+      "tipo": "taxa de fechamento",
+      "notas": "Valor estimado baseado em histórico"
+    },
+    "2025-12": {
+      "data_referencia": "2025-12-31",
+      "ptax_venda": 5.48,
+      "ptax_venda_string": "5,48",
+      "fonte_consulta": "BCB/SGS série 10813",
+      "tipo": "taxa de fechamento",
+      "notas": "Valor estimado baseado em histórico"
+    }
+  },
+  "uso": {
+    "finalidade": "Conversão de renda em moeda estrangeira no exercício 2026 (ano-calendário 2025)",
+    "metodo": "Usar taxa de fechamento PTAX de venda do último dia útil de cada mês para rendimentos mensais",
+    "regras": [
+      "Aplicar PTAX venda do mês de recebimento para rendimentos em moeda estrangeira",
+      "Se rendimento recebido em dia de não-funcionamento, usar taxa do dia útil anterior",
+      "Acumular rendimentos convertidos para declaração anual de IRPF",
+      "Aplicar taxa novamente na data de realização para ganho/perda cambial"
+    ]
+  },
+  "avisos": {
+    "tipo": "CRÍTICO",
+    "mensagem": "Estes são VALORES DE TESTE. Antes de usar em qualquer declaração fiscal real, consultar o Banco Central do Brasil — SGS (Sistema de Gerenciamento de Séries Temporais) na série 10813 para obter as taxas oficiais reais de fechamento PTAX de venda para cada mês."
+  }
+}

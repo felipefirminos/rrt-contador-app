@@ -1,0 +1,6 @@
+# rrt-group-contador v4.1
+# Dependencias externas (todas opcionais com graceful degradation)
+
+# Parser de informes de rendimentos PDF→JSON
+# Se ausente, parse_informe_rendimentos.py retorna erro e funciona em modo texto
+pdfplumber>=0.9.0

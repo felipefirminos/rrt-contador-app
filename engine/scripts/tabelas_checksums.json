@@ -1,0 +1,13 @@
+{
+  "data_verificacao": "2026-04-27T15:44:39.260405",
+  "checksums": {
+    "codigos_rendimentos_isentos.json": "03418824cf1909d6411af6be7cef146993ee4fde0a28f8489a9c053c10d23a27",
+    "inss_2026.json": "96e59b70b0e63889b54a931b530a24a63b3c616499f764e41a24c4fd94dc568b",
+    "irpf_deducoes.json": "33d681e580ff02d307181d3b145444c017f49fef1ac006a7a87283085bc74f66",
+    "gcap_rules.json": "45d9733f45b8ddab26cfcb1fffc6e4973789de5f7544859cc4d76ff9aa883617",
+    "simples_nacional.json": "9b263287ce8ad7ef1116899d9c7d50c675113dad2bd94a9c91c47377809a2dab",
+    "lucro_presumido.json": "891d2ed69acf0a4d2cf047ee22c1283da9b50bc533dd2bac498ef624c3d28b7f",
+    "irrf_2026.json": "2f1af6b873af9fb87ba51bd1fc994015a5b9ff9886805fa1a0b35499fce284b3",
+    "ptax_2026.json": "5d40d70950e35bdd15834095556a6d6c629c83fce545bc7addc933fe30905870"
+  }
+}

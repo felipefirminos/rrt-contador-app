@@ -1,0 +1,67 @@
+{
+  "descricao": "Tabelas dos Anexos I a V do Simples Nacional — LC 123/2006, Art. 18",
+  "base_legal": "Lei Complementar 123/2006, Anexos I a V",
+  "nota": "Estes valores estão na LC 123/2006 e não mudam anualmente (diferente do INSS/IRRF). Só mudam por alteração legislativa.",
+  "vigencia_ate": "permanente",
+  "limite_simples": 4800000.00,
+  "sublimite_icms_iss": 3600000.00,
+  "limite_mei": 81000.00,
+  "fator_r_minimo": 0.28,
+  "anexos": {
+    "I": {
+      "descricao": "Comércio",
+      "faixas": [
+        {"faixa": 1, "ate": 180000.00, "aliquota": 0.0400, "parcela_deduzir": 0.00},
+        {"faixa": 2, "ate": 360000.00, "aliquota": 0.0730, "parcela_deduzir": 5940.00},
+        {"faixa": 3, "ate": 720000.00, "aliquota": 0.0950, "parcela_deduzir": 13860.00},
+        {"faixa": 4, "ate": 1800000.00, "aliquota": 0.1070, "parcela_deduzir": 22500.00},
+        {"faixa": 5, "ate": 3600000.00, "aliquota": 0.1430, "parcela_deduzir": 87300.00},
+        {"faixa": 6, "ate": 4800000.00, "aliquota": 0.1900, "parcela_deduzir": 378000.00}
+      ]
+    },
+    "II": {
+      "descricao": "Indústria",
+      "faixas": [
+        {"faixa": 1, "ate": 180000.00, "aliquota": 0.0450, "parcela_deduzir": 0.00},
+        {"faixa": 2, "ate": 360000.00, "aliquota": 0.0780, "parcela_deduzir": 5940.00},
+        {"faixa": 3, "ate": 720000.00, "aliquota": 0.1000, "parcela_deduzir": 13860.00},
+        {"faixa": 4, "ate": 1800000.00, "aliquota": 0.1120, "parcela_deduzir": 22500.00},
+        {"faixa": 5, "ate": 3600000.00, "aliquota": 0.1470, "parcela_deduzir": 85500.00},
+        {"faixa": 6, "ate": 4800000.00, "aliquota": 0.3000, "parcela_deduzir": 720000.00}
+      ]
+    },
+    "III": {
+      "descricao": "Serviços (contabilidade, agências, academias, locação de bens móveis)",
+      "faixas": [
+        {"faixa": 1, "ate": 180000.00, "aliquota": 0.0600, "parcela_deduzir": 0.00},
+        {"faixa": 2, "ate": 360000.00, "aliquota": 0.1120, "parcela_deduzir": 9360.00},
+        {"faixa": 3, "ate": 720000.00, "aliquota": 0.1350, "parcela_deduzir": 17640.00},
+        {"faixa": 4, "ate": 1800000.00, "aliquota": 0.1600, "parcela_deduzir": 35640.00},
+        {"faixa": 5, "ate": 3600000.00, "aliquota": 0.2100, "parcela_deduzir": 125640.00},
+        {"faixa": 6, "ate": 4800000.00, "aliquota": 0.3300, "parcela_deduzir": 648000.00}
+      ]
+    },
+    "IV": {
+      "descricao": "Serviços (advocacia, construção civil, vigilância, limpeza)",
+      "faixas": [
+        {"faixa": 1, "ate": 180000.00, "aliquota": 0.0450, "parcela_deduzir": 0.00},
+        {"faixa": 2, "ate": 360000.00, "aliquota": 0.0900, "parcela_deduzir": 8100.00},
+        {"faixa": 3, "ate": 720000.00, "aliquota": 0.1020, "parcela_deduzir": 12420.00},
+        {"faixa": 4, "ate": 1800000.00, "aliquota": 0.1400, "parcela_deduzir": 39780.00},
+        {"faixa": 5, "ate": 3600000.00, "aliquota": 0.2200, "parcela_deduzir": 183780.00},
+        {"faixa": 6, "ate": 4800000.00, "aliquota": 0.3300, "parcela_deduzir": 828000.00}
+      ]
+    },
+    "V": {
+      "descricao": "Serviços (TI, engenharia, publicidade, jornalismo, auditoria)",
+      "faixas": [
+        {"faixa": 1, "ate": 180000.00, "aliquota": 0.1550, "parcela_deduzir": 0.00},
+        {"faixa": 2, "ate": 360000.00, "aliquota": 0.1800, "parcela_deduzir": 4500.00},
+        {"faixa": 3, "ate": 720000.00, "aliquota": 0.1950, "parcela_deduzir": 9900.00},
+        {"faixa": 4, "ate": 1800000.00, "aliquota": 0.2050, "parcela_deduzir": 17100.00},
+        {"faixa": 5, "ate": 3600000.00, "aliquota": 0.2300, "parcela_deduzir": 62100.00},
+        {"faixa": 6, "ate": 4800000.00, "aliquota": 0.3050, "parcela_deduzir": 540000.00}
+      ]
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "descricao": "Tabela progressiva de contribuição do INSS do empregado — vigente desde janeiro de 2026",
+  "base_legal": "Portaria Interministerial MPS/MF de janeiro/2026 (reajuste de 3,9%)",
+  "nota": "Tabela 2026 com reajuste de 3,9%. Novo teto R$ 8.475,55, novo piso R$ 1.621,00 (salário mínimo 2026). Confirmar valores vigentes na Econet ou no portal da Previdência.",
+  "vigencia_inicio": "2026-01-01",
+  "vigencia_ate": "2026-12-31",
+  "salario_minimo": 1621.00,
+  "teto_contribuicao": 8475.55,
+  "faixas": [
+    {
+      "faixa": 1,
+      "de": 0.00,
+      "ate": 1621.00,
+      "aliquota": 0.075,
+      "aliquota_pct": "7,5%"
+    },
+    {
+      "faixa": 2,
+      "de": 1621.01,
+      "ate": 2902.84,
+      "aliquota": 0.09,
+      "aliquota_pct": "9,0%"
+    },
+    {
+      "faixa": 3,
+      "de": 2902.85,
+      "ate": 4354.27,
+      "aliquota": 0.12,
+      "aliquota_pct": "12,0%"
+    },
+    {
+      "faixa": 4,
+      "de": 4354.28,
+      "ate": 8475.55,
+      "aliquota": 0.14,
+      "aliquota_pct": "14,0%"
+    }
+  ]
+}

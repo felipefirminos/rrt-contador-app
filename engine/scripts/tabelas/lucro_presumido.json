@@ -1,0 +1,77 @@
+{
+  "descricao": "Tabela de Lucro Presumido — IRPJ, CSLL, PIS e COFINS",
+  "base_legal": "Lei 9.249/95 Arts. 15 e 20, Lei 9.430/96, Lei 9.718/98",
+  "nota": "Percentuais de presunção definidos em lei. Alíquotas de IRPJ, CSLL, PIS e COFINS são fixas.",
+  "vigencia_ate": "permanente",
+
+  "aliquota_irpj": 0.15,
+  "aliquota_adicional_irpj": 0.10,
+  "limite_adicional_trimestral": 60000.00,
+  "limite_adicional_mensal": 20000.00,
+  "aliquota_csll": 0.09,
+  "aliquota_pis_cumulativo": 0.0065,
+  "aliquota_cofins_cumulativo": 0.03,
+
+  "atividades": {
+    "comercio": {
+      "descricao": "Comércio em geral (revenda de mercadorias)",
+      "presuncao_irpj": 0.08,
+      "presuncao_csll": 0.12,
+      "base_legal": "Lei 9.249/95 Art. 15 §1° I"
+    },
+    "industria": {
+      "descricao": "Indústria em geral (venda de produtos)",
+      "presuncao_irpj": 0.08,
+      "presuncao_csll": 0.12,
+      "base_legal": "Lei 9.249/95 Art. 15 §1° I"
+    },
+    "servicos": {
+      "descricao": "Serviços em geral (prestação de serviços)",
+      "presuncao_irpj": 0.32,
+      "presuncao_csll": 0.32,
+      "base_legal": "Lei 9.249/95 Art. 15 §1° III a"
+    },
+    "transporte_cargas": {
+      "descricao": "Transporte de cargas",
+      "presuncao_irpj": 0.08,
+      "presuncao_csll": 0.12,
+      "base_legal": "Lei 9.249/95 Art. 15 §1° I"
+    },
+    "transporte_passageiros": {
+      "descricao": "Transporte de passageiros",
+      "presuncao_irpj": 0.16,
+      "presuncao_csll": 0.12,
+      "base_legal": "Lei 9.249/95 Art. 15 §1° II a"
+    },
+    "combustiveis": {
+      "descricao": "Revenda de combustíveis e derivados de petróleo",
+      "presuncao_irpj": 0.016,
+      "presuncao_csll": 0.12,
+      "base_legal": "Lei 9.249/95 Art. 15 §1° I (exceção)"
+    },
+    "servicos_hospitalares": {
+      "descricao": "Serviços hospitalares e de saúde (com requisitos)",
+      "presuncao_irpj": 0.08,
+      "presuncao_csll": 0.12,
+      "base_legal": "Lei 9.249/95 Art. 15 §1° III a (equiparação a 8% conforme Lei 11.727/08)"
+    },
+    "construcao_civil": {
+      "descricao": "Construção civil (empreitada com emprego de materiais)",
+      "presuncao_irpj": 0.08,
+      "presuncao_csll": 0.12,
+      "base_legal": "Lei 9.249/95 Art. 15 §1° I (com materiais)"
+    },
+    "construcao_civil_servico": {
+      "descricao": "Construção civil (administração, empreitada só mão de obra)",
+      "presuncao_irpj": 0.32,
+      "presuncao_csll": 0.32,
+      "base_legal": "Lei 9.249/95 Art. 15 §1° III a"
+    },
+    "imobiliaria": {
+      "descricao": "Atividade imobiliária (venda de imóveis, loteamento)",
+      "presuncao_irpj": 0.08,
+      "presuncao_csll": 0.12,
+      "base_legal": "Lei 9.249/95 Art. 15 §1° I"
+    }
+  }
+}

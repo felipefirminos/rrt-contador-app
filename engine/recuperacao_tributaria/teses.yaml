@@ -1,0 +1,285 @@
+# Teses de Recuperação Tributária — base de conhecimento
+# Versão: 1.0 — 22/04/2026
+# Autor: RRT Group
+# Fontes: STF, STJ, PGFN, RFB (gov.br)
+# Atualização: revisar semestralmente — modulações e novos ressarcimentos podem
+# alterar status de "oportunidade" ou "risco".
+
+teses:
+
+  - id: TEMA_69_STF
+    nome: "Exclusão do ICMS da base de cálculo de PIS/COFINS"
+    leading_case: "RE 574.706"
+    corte: "STF"
+    tema_repercussao_geral: 69
+    data_julgamento_merito: "2017-03-15"
+    data_acordao_embargos: "2021-05-13"
+    tese: >
+      O ICMS não compõe a base de cálculo para a incidência do PIS e da
+      COFINS. O ICMS a ser excluído é o destacado na nota fiscal (ED).
+    modulacao:
+      marco_temporal: "2017-03-15"
+      regra: >
+        Decisão produz efeitos a partir de 15/03/2017, ressalvadas as ações
+        judiciais e administrativas protocoladas até esta data (que podem
+        recuperar os 5 anos anteriores à propositura).
+    aplicabilidade:
+      regimes:
+        - "Lucro Real"
+        - "Lucro Presumido"
+      excluidos:
+        - "Simples Nacional"  # PIS/COFINS embutidos no DAS — tese não aplica
+        - "MEI"
+    mecanismo_recuperacao:
+      - "Compensação administrativa via PER/DCOMP (crédito de PIS/COFINS)"
+      - "Restituição em espécie (menos comum)"
+      - "Ação judicial para períodos pré-15/03/2017 se houver ação já ajuizada"
+    risco: "BAIXO"
+    justificativa_risco: >
+      Tese pacificada. RFB reconhece o crédito administrativamente para o
+      período pós-15/03/2017. Principal risco é metodológico (qual ICMS
+      destacado considerar) — resolvido por SC COSIT posteriores.
+    base_legal:
+      - "CF/88, art. 195, I, b"
+      - "Lei 10.637/2002 (PIS não cumulativo)"
+      - "Lei 10.833/2003 (COFINS não cumulativa)"
+      - "Lei 9.718/98 (regime cumulativo)"
+      - "RE 574.706/PR (Tema 69 STF)"
+    fonte_oficial:
+      - "https://portal.stf.jus.br/jurisprudenciaRepercussao/tema.asp?num=69"
+    observacao_cautela: >
+      ⚠️ Verificar se o cliente NÃO teve decisão definitiva anterior com
+      tese diversa (coisa julgada). Revisar SC COSIT vigente sobre
+      metodologia (qual ICMS — operação, substituto, apurado?).
+
+  - id: TEMA_779_STJ
+    nome: "Conceito de insumos para créditos de PIS/COFINS não-cumulativo"
+    leading_case: "REsp 1.221.170/PR"
+    corte: "STJ"
+    tema_repetitivo: 779
+    data_julgamento: "2018-02-22"
+    tese: >
+      Para fins de creditamento de PIS e COFINS no regime não-cumulativo
+      (Leis 10.637/2002 e 10.833/2003), o conceito de insumo deve ser
+      aferido à luz dos critérios de essencialidade ou relevância,
+      considerando-se a imprescindibilidade ou importância do bem ou
+      serviço para o desenvolvimento da atividade econômica do
+      contribuinte. INs RFB 247/2002 e 404/2004 que restringiam o
+      conceito: ilegais.
+    modulacao: null  # não houve modulação específica
+    aplicabilidade:
+      regimes:
+        - "Lucro Real"  # PIS/COFINS não cumulativo
+      excluidos:
+        - "Lucro Presumido"  # regime cumulativo não gera créditos
+        - "Simples Nacional"
+        - "MEI"
+    mecanismo_recuperacao:
+      - "Compensação administrativa via PER/DCOMP"
+      - "Prescrição 5 anos (art. 168 CTN / art. 74 Lei 9.430/96)"
+    risco: "MEDIO"
+    justificativa_risco: >
+      A aplicação é CASE-BY-CASE. Cada tomada de crédito precisa ser
+      justificada pela essencialidade/relevância para a atividade do
+      contribuinte. Risco de glosa pela RFB se a tomada for agressiva ou
+      sem documentação.
+    requisitos_minimos:
+      - "CNAE do contribuinte e descrição detalhada do processo produtivo"
+      - "Relação das despesas pleiteadas + nota fiscal de cada uma"
+      - "Justificativa técnica de essencialidade/relevância (parecer)"
+      - "Sustentação documental da indispensabilidade"
+    base_legal:
+      - "Lei 10.637/2002, art. 3º (PIS não cumulativo)"
+      - "Lei 10.833/2003, art. 3º (COFINS não cumulativa)"
+      - "REsp 1.221.170/PR (Tema 779 STJ)"
+      - "IN RFB 2.121/2022 (revisa conceito pós-Tema 779)"
+    fonte_oficial:
+      - "https://www.stj.jus.br/sites/portalp/Paginas/Comunicacao/Noticias-antigas/2018/2018-05-10_06-51_Primeira-Secao-define-conceito-de-insumo-para-creditamento-de-PIS-e-Cofins.aspx"
+      - "https://www.gov.br/pgfn/pt-br/cidadania-tributaria/por-assunto/pis-cofins-2/copy_of_nao-cumulatividade/conceito-de-insumos-e-ajustes-no-creditamento"
+    observacao_cautela: >
+      ⚠️ Exige PARECER TÉCNICO por contador + validação jurídica antes
+      de compensar. Tomadas muito agressivas podem gerar autuação. PGFN
+      aceita apenas parte das tomadas pós-Tema 779 — consultar lista
+      atualizada de despesas aceitas/negadas.
+
+  - id: TEMA_478_STJ
+    nome: "Contribuição previdenciária patronal sobre aviso prévio indenizado"
+    leading_case: "REsp 1.230.957"
+    corte: "STJ"
+    tema_repetitivo: 478
+    data_julgamento: "2014-02-26"
+    tese: >
+      Não incide contribuição previdenciária patronal sobre os valores
+      pagos a título de aviso prévio indenizado (por ser verba de
+      natureza indenizatória, não salarial).
+    modulacao: null
+    aplicabilidade:
+      regimes:
+        - "Lucro Real"
+        - "Lucro Presumido"
+        - "Simples Nacional"  # Se houver folha de salários (fora SN ISS)
+    mecanismo_recuperacao:
+      - "Compensação administrativa via DCTFWeb / eSocial (reforma da apuração)"
+      - "Pedido de restituição via PER/DCOMP"
+      - "Prescrição 5 anos"
+    risco: "BAIXO"
+    justificativa_risco: >
+      Tese pacificada pelo STJ em repetitivo. Receita Federal aceita
+      administrativamente (Parecer SEI nº 15.147/2020/ME — PGFN).
+      Risco de glosa é baixo.
+    base_legal:
+      - 'Lei 8.212/1991, art. 28, §9º, alínea "e", nº 13'
+      - "REsp 1.230.957/RS (Tema 478 STJ)"
+      - "Parecer SEI nº 15.147/2020/ME (PGFN — aceitação pela Fazenda)"
+    fonte_oficial:
+      - "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=478&cod_tema_final=478"
+      - "https://www.stj.jus.br/sites/portalp/Paginas/Comunicacao/Noticias/2024/06102024-As-controversias-na-base-de-calculo-da-contribuicao-previdenciaria-do-empregador.aspx"
+    observacao_cautela: >
+      ⚠️ Atenção: 13º proporcional ao aviso prévio indenizado TEM
+      incidência (natureza salarial). Não incluir no valor recuperável.
+
+  - id: INSS_15_DIAS_DOENCA
+    nome: "Contribuição patronal sobre primeiros 15 dias de auxílio-doença"
+    leading_case: "REsp 1.230.957 e sucessivos"
+    corte: "STJ"
+    data_consolidacao: "2014"
+    tese: >
+      Não incide contribuição previdenciária patronal sobre o valor pago
+      ao empregado nos primeiros 15 dias que antecedem o afastamento por
+      auxílio-doença/incapacidade, por ter natureza indenizatória.
+    modulacao: null
+    aplicabilidade:
+      regimes:
+        - "Lucro Real"
+        - "Lucro Presumido"
+        - "Simples Nacional (com folha salarial)"
+    mecanismo_recuperacao:
+      - "Compensação via DCTFWeb / eSocial (retificar folha)"
+      - "PER/DCOMP"
+    risco: "BAIXO"
+    justificativa_risco: >
+      Jurisprudência consolidada. RFB aceita administrativamente.
+    base_legal:
+      - "Lei 8.213/1991, art. 60, §3º (empregador paga os 15 primeiros dias)"
+      - "Lei 8.212/1991, art. 28 (base de cálculo)"
+      - "STJ — jurisprudência consolidada"
+      - "Parecer SEI nº 16.120/2020/ME (PGFN — dispensa de contestar/recorrer)"
+    observacao_cautela: >
+      ⚠️ Atenção: a partir do 16º dia o pagamento é feito pelo INSS,
+      não pelo empregador — não há contribuição para recuperar. Apenas
+      os primeiros 15 dias, e apenas se a empresa recolheu e não
+      deveria.
+
+  - id: TEMA_201_STF
+    nome: "Restituição de ICMS-ST pago a maior (base efetiva < presumida)"
+    leading_case: "RE 593.849/MG"
+    corte: "STF"
+    tema_repercussao_geral: 201
+    data_julgamento_merito: "2016-10-19"
+    tese: >
+      É devida a restituição da diferença do imposto pago a mais no
+      regime de substituição tributária para a frente se a base de
+      cálculo efetiva da operação for inferior à presumida.
+    modulacao:
+      marco_temporal: "2016-10-19"  # data do julgamento
+      regra: >
+        Precedente orienta todos os litígios pendentes e casos futuros,
+        preservando situações já transitadas em julgado em sentido
+        contrário.
+    aplicabilidade:
+      regimes:
+        - "Lucro Real"
+        - "Lucro Presumido"
+      restricoes:
+        - "Apenas para contribuinte SUBSTITUÍDO (quem recebeu a mercadoria com ST retido)"
+        - "Depende de legislação estadual específica — cada UF regula restituição"
+        - "Caso excepcional do Simples Nacional (ICMS-ST destacado fora do DAS) exige análise manual — não entra na triagem automática"
+    mecanismo_recuperacao:
+      - "Pedido administrativo à SEFAZ da UF (cada estado tem seu procedimento)"
+      - "Ação judicial se SEFAZ negar"
+    risco: "MEDIO"
+    justificativa_risco: >
+      Tese do STF é clara, mas operacionalização depende da SEFAZ da UF.
+      SP (Portaria CAT 42/2018 e normas posteriores), MG, RS, PR e
+      outras já regulamentaram. UFs sem regulamentação específica podem
+      exigir ação judicial.
+    requisitos_minimos:
+      - "Comprovação da saída com preço efetivo inferior à base presumida"
+      - "Nota fiscal de saída + nota de entrada com ST retido"
+      - "Escrituração EFD-ICMS/IPI coerente"
+      - "Cálculo da diferença operação por operação"
+    base_legal:
+      - "CF/88, art. 150, §7º"
+      - "LC 87/1996 (Lei Kandir), art. 10"
+      - "RE 593.849/MG (Tema 201 STF)"
+      - "Legislação da UF específica (ex: SP — Portaria CAT 42/2018)"
+    fonte_oficial:
+      - "https://portal.stf.jus.br/jurisprudenciaRepercussao/tema.asp?num=201"
+    observacao_cautela: >
+      ⚠️ Depende da UF. Para clientes RRT (majoritariamente SP/Campinas),
+      validar Portaria CAT vigente. Para UFs sem regulamentação, decisão
+      pode ser bloqueada administrativamente.
+
+# -------------------------------------------------------------------------
+# ALERTAS DE RISCO — teses que viraram RISCO, não oportunidade
+# -------------------------------------------------------------------------
+alertas_risco:
+
+  - id: TEMA_985_STF_RISCO
+    nome: "Contribuição patronal sobre terço constitucional de férias"
+    leading_case: "RE 1.072.485"
+    corte: "STF"
+    tema_repercussao_geral: 985
+    data_julgamento_merito: "2020-08-31"
+    data_publicacao_ata: "2020-09-15"
+    status_embargos: >
+      Embargos de declaração e demais recursos sobre modulação foram
+      discutidos em sessões posteriores — validar no portal do STF o
+      ÚLTIMO andamento antes de orientar cliente. A modulação de
+      15/09/2020 permanece como marco de referência.
+    tese: >
+      É legítima a incidência de contribuição social sobre o valor
+      satisfeito a título de terço constitucional de férias
+      (reviravolta em relação à jurisprudência anterior do STJ, que
+      apontava não-incidência).
+    modulacao:
+      marco_temporal: "2020-09-15"
+      regra: >
+        Efeitos ex nunc a partir de 15/09/2020. Contribuições já pagas
+        e não contestadas judicialmente até essa data NÃO são devolvidas
+        pela União. Empresas com ação judicial protocolada até 15/09/2020
+        podem recuperar retroativamente pelos 5 anos anteriores à
+        propositura.
+    classificacao: "RISCO para empresas que deixaram de recolher confiando em jurisprudência antiga do STJ. OPORTUNIDADE restrita a empresas com ação judicial ajuizada ANTES de 15/09/2020."
+    acao_recomendada: >
+      1. Verificar se a empresa tinha ação judicial sobre terço de férias
+         protocolada antes de 15/09/2020 — se SIM, possibilidade de
+         recuperação dos 5 anos pré-ação.
+      2. Se NÃO tinha ação e deixou de recolher — autuação em aberto.
+         Verificar eventual parcelamento, transação tributária ou
+         regularização espontânea antes de fiscalização.
+      3. Para períodos a partir de 15/09/2020 — contribuir normalmente.
+    base_legal:
+      - "RE 1.072.485 (Tema 985 STF)"
+      - "Lei 8.212/1991, art. 28"
+    fonte_oficial:
+      - "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=5255826"
+
+# -------------------------------------------------------------------------
+# METADATA
+# -------------------------------------------------------------------------
+metadata:
+  versao: "1.0"
+  data_revisao: "2026-04-22"
+  proxima_revisao: "2026-10-22"
+  autor: "RRT Group"
+  fontes_consultadas:
+    - "Portal STF (portal.stf.jus.br)"
+    - "Portal STJ (www.stj.jus.br)"
+    - "PGFN (gov.br/pgfn)"
+    - "Receita Federal (gov.br/receitafederal)"
+  teses_pendentes_verificacao:
+    - "Tema 634 STJ (ISS na base PIS/COFINS) — status ainda em movimento"
+    - "Exclusão PIS/COFINS da própria base (tese filhote)"
+    - "Créditos IPI sobre insumos isentos/alíquota zero"
+    - "ICMS-DIFAL pré-LC 190/2022 (depende de UF)"

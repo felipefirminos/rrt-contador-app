@@ -1,0 +1,266 @@
+{
+  "descricao": "Regras de tributação de ganho de capital (GCAP) por tipo de ativo — exercício 2026",
+  "base_legal": "Lei 11.196/2005 Art. 15 e 40; Lei 7.713/1988 Art. 11; Lei 9.249/1995 Art. 15; IN RFB 599/2005; Lei 14.754/2023",
+  "nota": "Alíquotas e isenções vigentes em 2026. Imóvel com benefício de redução por tempo. Criptomoedas e ETF exterior em regime de orientação (guidance). Verificar alterações legislativas antes de cada aplicação.",
+  "vigencia_inicio": "2026-01-01",
+  "vigencia_ate": "2026-12-31",
+  "ativos": [
+    {
+      "tipo": "imovel",
+      "descricao": "Ganho de capital em operações com imóvel — pessoa física",
+      "modo": "calculado",
+      "isencoes": [
+        {
+          "condicao": "Ganho de capital em alienação de imóvel residencial único de propriedade do contribuinte",
+          "valor_limite": null,
+          "base_legal": "Lei 11.196/2005 Art. 40 § 2º",
+          "observacao": "Isenção é automática, sem limite de valor. Aplica-se somente 1 imóvel por pessoa física a cada 24 meses"
+        }
+      ],
+      "aliquotas": [
+        {
+          "faixa": 1,
+          "ganho_de": 0.00,
+          "ganho_ate": 5000000.00,
+          "aliquota": 0.15,
+          "aliquota_pct": "15%",
+          "descricao": "Até R$ 5 milhões"
+        },
+        {
+          "faixa": 2,
+          "ganho_de": 5000000.01,
+          "ganho_ate": 10000000.00,
+          "aliquota": 0.175,
+          "aliquota_pct": "17,5%",
+          "descricao": "De R$ 5 a R$ 10 milhões"
+        },
+        {
+          "faixa": 3,
+          "ganho_de": 10000000.01,
+          "ganho_ate": 30000000.00,
+          "aliquota": 0.20,
+          "aliquota_pct": "20%",
+          "descricao": "De R$ 10 a R$ 30 milhões"
+        },
+        {
+          "faixa": 4,
+          "ganho_de": 30000000.01,
+          "ganho_ate": null,
+          "aliquota": 0.225,
+          "aliquota_pct": "22,5%",
+          "descricao": "Acima de R$ 30 milhões"
+        }
+      ],
+      "fator_redutor_tempo": {
+        "nome": "FRT — Fator de Redução por Tempo (implementado em calc_gcap_imovel.py)",
+        "nota": "A lógica de FRT está no script Python, não neste JSON. Regras: pré-1969 = isenção integral; 1969-1988 = redução por ano de aquisição (IN SRF 84/2001); pós-1988 = sem redução.",
+        "base_legal": "IN SRF 84/2001; Lei 7.713/1988 Art. 18; Lei 11.196/2005 Art. 40"
+      },
+      "documentos_necessarios": [
+        "Escritura/Contrato de compra do imóvel",
+        "Escritura/Contrato de venda do imóvel",
+        "Comprovante de registro em Cartório de Imóveis",
+        "Comprovante de pagamento (ITBI, cartório, etc)",
+        "Declaração do Imposto de Renda dos anos anteriores (se houver diferença)"
+      ],
+      "regras_validacao": [
+        "Validar datas de aquisição e venda contra documentação",
+        "Calcular período exato em meses para determinar FRT correto",
+        "Verificar se imóvel foi principal residência (isenção especial)",
+        "Confirmar se houve aluguel — aluguel implica perda de isenção de residência única",
+        "Aplicar progressividade em fatias se ganho ultrapassa R$ 5M",
+        "Descontar custos de aquisição e venda (ITBI, registro, corretagem) do ganho"
+      ]
+    },
+    {
+      "tipo": "veiculo",
+      "descricao": "Ganho de capital em operações com veículo — pessoa física",
+      "modo": "calculado",
+      "isencoes": [
+        {
+          "condicao": "Ganho de capital em alienação de veículo de uso pessoal",
+          "valor_limite": null,
+          "base_legal": "Lei 9.249/1995 Art. 15 § 1º (interpretação jurisprudencial)",
+          "observacao": "Isenção dispensa declaração. Ganho de capital de veículo de uso pessoal não é tributado, mas deve ser reportado na IRPF"
+        }
+      ],
+      "aliquotas": [
+        {
+          "faixa": 1,
+          "ganho_de": 0.00,
+          "ganho_ate": 5000000.00,
+          "aliquota": 0.15,
+          "aliquota_pct": "15%",
+          "descricao": "Até R$ 5 milhões (atividade comercial)"
+        },
+        {
+          "faixa": 2,
+          "ganho_de": 5000000.01,
+          "ganho_ate": 10000000.00,
+          "aliquota": 0.175,
+          "aliquota_pct": "17,5%",
+          "descricao": "De R$ 5 a R$ 10 milhões (atividade comercial)"
+        },
+        {
+          "faixa": 3,
+          "ganho_de": 10000000.01,
+          "ganho_ate": 30000000.00,
+          "aliquota": 0.20,
+          "aliquota_pct": "20%",
+          "descricao": "De R$ 10 a R$ 30 milhões (atividade comercial)"
+        },
+        {
+          "faixa": 4,
+          "ganho_de": 30000000.01,
+          "ganho_ate": null,
+          "aliquota": 0.225,
+          "aliquota_pct": "22,5%",
+          "descricao": "Acima de R$ 30 milhões (atividade comercial)"
+        }
+      ],
+      "documentos_necessarios": [
+        "Certificado de Registro e Licenciamento do Veículo (CRLV)",
+        "Comprovante de aquisição (NF-e, recibo, contrato)",
+        "Comprovante de venda (NF-e de saída, recibo, contrato)",
+        "Comprovante de transferência de propriedade no DETRAN",
+        "Comprovante de pagamento de multas/impostos (se houver)"
+      ],
+      "regras_validacao": [
+        "Validar se veículo é de uso pessoal (isento) ou atividade comercial (tributável)",
+        "Para uso pessoal, dispensar cálculo de imposto, mas reportar na declaração",
+        "Para atividade comercial (revenda, aluguel), aplicar alíquotas progressivas",
+        "Descontar custos de aquisição (emplacamento, IPVA inicial) do ganho",
+        "Descontar custos de venda (corretagem, transferência) do ganho",
+        "Validar documentação de registro e transferência no DETRAN"
+      ]
+    },
+    {
+      "tipo": "crypto",
+      "descricao": "Ganho de capital em operações com criptomoedas — pessoa física",
+      "modo": "guidance",
+      "campo_obrigatorio_custodia": {
+        "descricao": "OBRIGATÓRIO identificar onde os criptoativos estão custodiados antes de qualquer análise",
+        "opcoes": ["brasil", "exterior", "self_custody"],
+        "impacto": {
+          "brasil": "Exchange brasileira (Mercado Bitcoin, Foxbit, etc.) — aplica IN RFB 1.888/2019, isenção R$ 35K/mês em vendas",
+          "exterior": "Exchange estrangeira (Binance global, Coinbase, Kraken) — pode se enquadrar na Lei 14.754/2023 como aplicação financeira no exterior (15% fixo, sem isenção de R$ 35K)",
+          "self_custody": "Wallet pessoal (Ledger, Trezor, MetaMask) — tributação depende de onde ocorre a venda/conversão; se vende em exchange exterior, segue regra de exterior"
+        },
+        "alerta": "A custódia determina qual regime tributário se aplica. NÃO é possível calcular imposto sem esta informação."
+      },
+      "isencoes": [
+        {
+          "condicao": "Ganho de capital em criptomoeda com valor mensal inferior ou igual a R$ 35.000 — SOMENTE para ativos custodiados/negociados no Brasil",
+          "valor_limite": 35000.00,
+          "moeda": "BRL",
+          "base_legal": "IN RFB 1.888/2019 § 2º (interpretação — ainda sob debate legal)",
+          "observacao": "Regime de orientação: isenção de até R$ 35 mil por mês. Para criptoativos no exterior (Lei 14.754/2023), esta isenção pode NÃO se aplicar — alíquota fixa de 15%. Verificar enquadramento."
+        }
+      ],
+      "aliquotas": [
+        {
+          "faixa": 1,
+          "ganho_de": 35000.01,
+          "ganho_ate": null,
+          "aliquota": 0.15,
+          "aliquota_pct": "15%",
+          "descricao": "Acima de R$ 35 mil mensais (ganho tributável)"
+        }
+      ],
+      "metodo_apuracao": "FIFO",
+      "metodo_apuracao_descricao": "First In First Out — obrigatório para criptomoedas. Vender primeiro o ativo adquirido primeiro",
+      "documentos_necessarios": [
+        "Extrato de wallet ou exchange com histórico de transações",
+        "Comprovante de aquisição de criptomoedas (com data e valor em BRL na data)",
+        "Comprovante de venda/alienação (com data, quantidade e valor em BRL)",
+        "Declaração de informações de conta em exchange (IF-Pessoa Física)",
+        "Cálculo de ganho capital mensal e anual"
+      ],
+      "regras_validacao": [
+        "Aplicar método FIFO obrigatoriamente para apuração de ganho",
+        "Calcular ganho/perda por mês civil",
+        "Aplicar isenção de R$ 35 mil por mês se ganho mensal <= R$ 35.000",
+        "Acumular perdas mensais para compensar ganhos de outros meses",
+        "Reportar todas as transações em declaração, mesmo operações com prejuízo",
+        "Validar conversão para BRL usando taxa de fechamento do dia da transação",
+        "Nota: regime de tributação de criptomoeda ainda está sendo definido pela RFB — seguir orientação de parecer jurídico"
+      ],
+      "observacao_legal": "A tributação de criptomoedas em IRPF está ainda em regime de orientação (guidance). A RFB entende haver isenção mensal de R$ 35 mil, mas este posicionamento pode sofrer alterações. Reportar todas as operações na IRPF 2026 independentemente de isenção."
+    },
+    {
+      "tipo": "etf_exterior",
+      "descricao": "Ganho de capital em ETF (Exchange Traded Fund) de exterior — pessoa física",
+      "modo": "guidance",
+      "isencoes": [
+        {
+          "condicao": "ETF de exterior adquirido após 1º de janeiro de 2023 — regime especial de menor tributação",
+          "valor_limite": null,
+          "base_legal": "Lei 14.754/2023 Art. 1º e 2º; IN RFB 2.077/2023",
+          "observacao": "ETF exterior adquirido a partir de 2023 segue novo regime com alíquota reduzida de 10% até 31/12/2026"
+        }
+      ],
+      "aliquotas": [
+        {
+          "faixa": 1,
+          "descricao": "ETF adquirido até 31/12/2022",
+          "ganho_de": 0.00,
+          "ganho_ate": null,
+          "aliquota": 0.15,
+          "aliquota_pct": "15%",
+          "notas": "Alíquota normal de ganho de capital"
+        },
+        {
+          "faixa": 2,
+          "descricao": "ETF adquirido a partir de 1º/01/2023 (regime especial Lei 14.754/2023)",
+          "ganho_de": 0.00,
+          "ganho_ate": null,
+          "aliquota": 0.10,
+          "aliquota_pct": "10%",
+          "vigencia_ate": "2026-12-31",
+          "notas": "Alíquota reduzida para estímulo de investimento em exterior"
+        }
+      ],
+      "documentos_necessarios": [
+        "Comprovante de aquisição do ETF (extrato de corretora, nota de operação)",
+        "Comprovante de venda (nota de saída, extrato de corretora)",
+        "Dados do ETF (ticker, ISIN, data de aquisição e venda)",
+        "Extrato de conta de investimento no exterior",
+        "Comprovante de câmbio (se aplicável)",
+        "Documentação de instituição financeira autorizada pela CVM"
+      ],
+      "regras_validacao": [
+        "Validar data de aquisição para determinar alíquota correta (15% pré-2023 vs 10% a partir de 2023)",
+        "Conferir se ETF é fundo negociado em bolsa (Exchange Traded Fund) — evitar confusão com fundo mútuo exterior",
+        "Converter ganho em moeda estrangeira para BRL usando PTAX de venda do dia da alienação",
+        "Considerar ganho cambial separadamente do ganho de capital em ETF",
+        "Validar registro de intermediária junto à CVM",
+        "Observar que alíquota reduzida de 10% expira em 31/12/2026 — após isso, retorna a 15%"
+      ],
+      "avisos": [
+        "Lei 14.754/2023 é regime de transição até 31/12/2026. Após essa data, voltam alíquotas normais de 15%.",
+        "Ganho cambial em ETF é calculado separadamente e pode ter alíquota diferente.",
+        "ETF negociado em bolsa estrangeira deve estar registrado junto a órgão regulador do país de origem."
+      ]
+    }
+  ],
+  "aliquotas_progressivas": {
+    "descricao": "Aplicação de alíquotas progressivas para ganho de capital — cálculo em fatias",
+    "exemplo": "Ganho de capital de R$ 7 milhões: (5M × 15%) + (2M × 17,5%) = R$ 1.100.000",
+    "nota": "Aplicar progressividade dentro do mesmo ativo e exercício fiscal"
+  },
+  "ganho_cambial": {
+    "descricao": "Tratamento de ganho/perda cambial em operações com moeda estrangeira",
+    "aliquota": 0.15,
+    "aliquota_pct": "15%",
+    "base_legal": "Lei 9.249/1995 Art. 19 § 1º",
+    "calculo": "Diferença entre valor de venda em BRL e valor de compra em BRL (usando PTAX de venda de cada data)",
+    "observacao": "Ganho cambial é tributado por si mesmo, separadamente de ganho de capital em ativo estrangeiro"
+  },
+  "validacao_geral": {
+    "exigir_documentacao_original": true,
+    "permitir_ganho_negativo": true,
+    "permitir_compensacao_perdas": true,
+    "permitir_deferimento_ganho": false,
+    "exigir_comprovante_pagamento": true
+  }
+}

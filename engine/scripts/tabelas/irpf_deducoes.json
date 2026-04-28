@@ -1,0 +1,147 @@
+{
+  "descricao": "Classificação de deduções do IRPF — Imposto de Renda Pessoa Física em exercício anual",
+  "base_legal": "Art. 8º Lei 9.250/1995; RIR/2018 Art. 80 a 89; IN RFB 1.571/2015",
+  "nota": "Limites de deduções para o exercício 2026 (ano-calendário 2025). Educação e dependentes reajustados conforme INPC. Verificar atualizações na RFB antes de cada processamento.",
+  "vigencia_inicio": "2026-01-01",
+  "vigencia_ate": "2026-12-31",
+  "categorias": [
+    {
+      "tipo": "saude",
+      "descricao": "Despesas com assistência médica, odontológica, hospitalar, análises clínicas e próteses dentárias",
+      "limite_anual": null,
+      "limite_mensal": null,
+      "requer_comprovante": true,
+      "requer_cpf_beneficiario": true,
+      "documentos_exigidos": [
+        "Recibo ou Nota Fiscal eletrônica",
+        "CPF do contribuinte ou dependente",
+        "Comprovante de pagamento (transferência, cartão crédito/débito)"
+      ],
+      "base_legal": "Art. 8º, inciso IV Lei 9.250/1995",
+      "regras_validacao": [
+        "Aceitar despesas com pessoa física ou PJ registrada no CNAE 8620-7",
+        "Rejeitar despesas com medicamentos (quando não prescritos por médico em receita)",
+        "Rejeitar despesas com academia ou educação física",
+        "Aceitar somente despesas com contribuinte ou seus dependentes"
+      ]
+    },
+    {
+      "tipo": "educacao",
+      "descricao": "Despesas com educação escolar (ensino fundamental, médio, superior) e cursos de formação profissional",
+      "limite_anual": 3561.50,
+      "limite_mensal": null,
+      "requer_comprovante": true,
+      "requer_cpf_beneficiario": true,
+      "documentos_exigidos": [
+        "Recibo de matrícula ou contrato de prestação de serviços",
+        "Nota Fiscal ou recibo da instituição",
+        "CPF do estudante",
+        "Comprovante de pagamento"
+      ],
+      "base_legal": "Art. 8º, inciso IV Lei 9.250/1995; IN RFB 1.571/2015",
+      "regras_validacao": [
+        "Aplicar limite anual de R$ 3.561,50 por pessoa (contribuinte ou dependente)",
+        "Aceitar somente educação escolar e formação profissional",
+        "Aceitar despesas com educação infantil (creche e pré-escola) — são dedutíveis desde Lei 11.482/2007 Art. 3º, dentro do limite anual por pessoa",
+        "Rejeitar cursos de curta duração sem registro oficial",
+        "Verificar se instituição está regularizada (CNPJ ativo)"
+      ]
+    },
+    {
+      "tipo": "previdencia_oficial",
+      "descricao": "Contribuições ao INSS como contribuinte individual ou facultativo",
+      "limite_anual": null,
+      "limite_mensal": null,
+      "requer_comprovante": true,
+      "requer_cpf_beneficiario": false,
+      "documentos_exigidos": [
+        "Extrato do CNIS (Cadastro Nacional de Informações Sociais)",
+        "Comprovante de pagamento (GPS, DOC/TED ou extrato bancário)",
+        "Recibos do INSS ou demonstrativo de arrecadação"
+      ],
+      "base_legal": "Art. 8º, inciso III Lei 9.250/1995; Lei 8.212/1991",
+      "regras_validacao": [
+        "Aceitar apenas contribuições ao INSS (não acumular com previdência privada no mesmo período)",
+        "Validar contra dados do CNIS da RFB",
+        "Rejeitar contribuições ao INSS com atraso superior a 2 anos",
+        "Aceitar contribuições de dependentes apenas se configurados na declaração"
+      ]
+    },
+    {
+      "tipo": "previdencia_privada",
+      "descricao": "Contribuições ao PGBL (Plano Gerador de Benefício Livre) até 12% da renda bruta",
+      "limite_anual": null,
+      "limite_mensal": null,
+      "requer_comprovante": true,
+      "requer_cpf_beneficiario": true,
+      "campo_obrigatorio_tipo_plano": "PGBL ou VGBL — OBRIGATÓRIO confirmar antes de aceitar dedução",
+      "campo_obrigatorio_regime_tributacao": "progressivo ou regressivo — OBRIGATÓRIO para resgates (impacta classificação: tributável vs exclusiva)",
+      "documentos_exigidos": [
+        "Demonstrativo de contribuições da instituição financeira",
+        "Extrato da conta/fundo de previdência",
+        "Comprovante de pagamento",
+        "CNPJ ou código da instituição",
+        "Informe de rendimentos com indicação do tipo (PGBL/VGBL) e regime (progressivo/regressivo)"
+      ],
+      "base_legal": "Art. 8º, inciso III Lei 9.250/1995; RIR/2018 Art. 82",
+      "regras_validacao": [
+        "Limitar deduções a 12% da renda bruta total do período",
+        "Calcular renda bruta: salários, aluguéis, pró-labore, rendimentos",
+        "REJEITAR VGBL como dedução — VGBL é aplicação financeira, NÃO gera dedução IRPF",
+        "Aceitar somente contribuições a instituição regularizada na SUSEP/BACEN",
+        "Verificar se 12% ultrapassa limite, rejeitar excesso",
+        "Para RESGATES: se regime progressivo → rendimento tributável (Seção 3); se regressivo → tributação exclusiva (Seção 5)",
+        "Se tipo_plano não informado → FLAGGED (não aprovar nem rejeitar, solicitar confirmação)"
+      ]
+    },
+    {
+      "tipo": "dependentes",
+      "descricao": "Dedução forfetária por dependente — R$ 2.275,08 por ano por cada dependente (AC 2025, exercício 2026)",
+      "limite_anual": 2275.08,
+      "limite_mensal": null,
+      "requer_comprovante": false,
+      "requer_cpf_beneficiario": true,
+      "documentos_exigidos": [
+        "CPF do dependente",
+        "Comprovante de parentesco (certidão, carteira de identidade, comprovante de endereço)",
+        "Documentação do motivo de dependência (se inválido, desempregado maior de idade ou estudante)"
+      ],
+      "base_legal": "Art. 8º, inciso II Lei 9.250/1995; RIR/2018 Art. 81",
+      "regras_validacao": [
+        "Verificar parentesco: cônjuge, companheiro, filhos (até 21 anos ou 24 se estudante), pais, avós, irmãos",
+        "Validar CPF do dependente contra base RFB",
+        "Rejeitar dependente que possua renda bruta superior a R$ 28.559,70 no período",
+        "Para inválidos ou desempregados maiores de 21 anos, exigir documentação comprobatória",
+        "Limitar a 2 cônjuges/companheiros por declaração (comum)"
+      ]
+    },
+    {
+      "tipo": "pensao_alimenticia",
+      "descricao": "Pensão alimentícia paga por determinação judicial ou acordo homologo a terceiros",
+      "limite_anual": null,
+      "limite_mensal": null,
+      "requer_comprovante": true,
+      "requer_cpf_beneficiario": true,
+      "documentos_exigidos": [
+        "Sentença judicial ou acordo homologado",
+        "CPF do alimentado (beneficiário)",
+        "Comprovantes de pagamento (extrato bancário, transferências, cheques)",
+        "Número do processo judicial (se não homologo)"
+      ],
+      "base_legal": "Art. 8º, inciso I Lei 9.250/1995; CPC/2015 Art. 522 ss.",
+      "regras_validacao": [
+        "Exigir obrigatoriamente sentença judicial ou acordo homologado",
+        "Rejeitar se não houver documento comprobatório de decisão judicial",
+        "Validar CPF do alimentado contra base RFB",
+        "Verificar se pagamentos correspondem ao valor determinado em sentença",
+        "Aceitar somente pensão alimentícia (não outras obrigações de pagar)"
+      ]
+    }
+  ],
+  "validacao_geral": {
+    "rejeitar_deducoes_futuras": true,
+    "permitir_deducoes_anos_anteriores": false,
+    "exigir_documento_identidade_beneficiario": true,
+    "notas": "Todas as deduções devem estar amparadas em documentação original ou cópia autenticada. A RFB pode requerer apresentação de comprovantes até 5 anos após a declaração."
+  }
+}
