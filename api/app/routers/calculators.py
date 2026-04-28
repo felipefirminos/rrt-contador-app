@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 from app.schemas.calculators import (
     ComparativoRegimesRequest,
     ProlaboreRequest,
+    RescisaoRequest,
     SimplesDASRequest,
 )
 from app.services import engine
@@ -42,3 +43,11 @@ def prolabore(req: ProlaboreRequest) -> dict:
 @router.post("/comparativo-regimes")
 def comparativo_regimes(req: ComparativoRegimesRequest) -> dict:
     return engine.calc_comparativo(**req.model_dump())
+
+
+@router.post("/rescisao")
+def rescisao(req: RescisaoRequest) -> dict:
+    result = engine.calc_rescisao(**req.model_dump())
+    if "erro" in result:
+        raise HTTPException(status_code=422, detail=result["erro"])
+    return result

@@ -25,6 +25,7 @@ from calc_simples import calcular_das as _calc_das  # noqa: E402
 from calc_simples import sugerir_anexo_engenharia as _sugerir_anexo  # noqa: E402
 from calc_prolabore import calcular_prolabore as _calc_prolabore  # noqa: E402
 from calc_comparativo_regimes import comparar_regimes as _comparar_regimes  # noqa: E402
+from calc_rescisao import calcular_rescisao as _calc_rescisao  # noqa: E402
 
 
 def calc_simples_das(
@@ -59,6 +60,36 @@ def calc_prolabore(
         regime=regime,
         num_dependentes=num_dependentes,
         pensao_alimenticia=pensao_alimenticia,
+    )
+
+
+def calc_rescisao(
+    tipo: str,
+    salario: float,
+    anos_servico: int = 0,
+    aviso_previo: str = "indenizado",
+    dias_trabalhados_mes: int | None = None,
+    meses_13_proporcional: int | None = None,
+    meses_ferias_proporcional: int | None = None,
+    tem_ferias_vencidas: bool = False,
+    periodos_ferias_vencidas: int = 1,
+    saldo_fgts: float = 0.0,
+    num_dependentes: int = 0,
+    media_adicionais: float = 0.0,
+) -> dict[str, Any]:
+    return _calc_rescisao(
+        tipo=tipo,
+        salario=salario,
+        anos_servico=anos_servico,
+        aviso_previo=aviso_previo,
+        dias_trabalhados_mes=dias_trabalhados_mes,
+        meses_13_proporcional=meses_13_proporcional,
+        meses_ferias_proporcional=meses_ferias_proporcional,
+        tem_ferias_vencidas=tem_ferias_vencidas,
+        periodos_ferias_vencidas=periodos_ferias_vencidas,
+        saldo_fgts=saldo_fgts,
+        num_dependentes=num_dependentes,
+        media_adicionais=media_adicionais,
     )
 
 
@@ -163,6 +194,41 @@ CALCULATOR_TOOLS = [
             "required": ["receita_anual", "atividade_presumido", "anexo_simples"],
         },
     },
+    {
+        "name": "calc_rescisao",
+        "description": (
+            "Calcula rescisão trabalhista (CLT Arts. 477-484-A, Lei 12.506/2011). "
+            "4 tipos: sem_justa_causa (FGTS+40%, seguro-desemprego), pedido_demissao "
+            "(sem multa, sem FGTS), justa_causa (apenas férias vencidas), acordo_mutuo "
+            "(484-A: aviso 50%, FGTS multa 20%, saque 80%, sem seguro-desemprego). "
+            "Aplica regras de incidência: férias indenizadas+1/3 e aviso indenizado "
+            "são ISENTOS de INSS/IRRF; 13° tem cálculo separado."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "tipo": {
+                    "type": "string",
+                    "enum": ["sem_justa_causa", "pedido_demissao", "justa_causa", "acordo_mutuo"],
+                },
+                "salario": {"type": "number", "description": "Último salário mensal (R$)"},
+                "anos_servico": {"type": "integer", "default": 0},
+                "aviso_previo": {
+                    "type": "string",
+                    "enum": ["indenizado", "trabalhado", "dispensado"],
+                    "default": "indenizado",
+                },
+                "meses_13_proporcional": {"type": "integer", "description": "Avos de 13°"},
+                "meses_ferias_proporcional": {"type": "integer"},
+                "tem_ferias_vencidas": {"type": "boolean", "default": False},
+                "periodos_ferias_vencidas": {"type": "integer", "default": 1},
+                "saldo_fgts": {"type": "number", "default": 0},
+                "num_dependentes": {"type": "integer", "default": 0},
+                "media_adicionais": {"type": "number", "default": 0},
+            },
+            "required": ["tipo", "salario"],
+        },
+    },
 ]
 
 
@@ -170,4 +236,5 @@ TOOL_DISPATCH = {
     "calc_simples_das": calc_simples_das,
     "calc_prolabore": calc_prolabore,
     "calc_comparativo": calc_comparativo,
+    "calc_rescisao": calc_rescisao,
 }

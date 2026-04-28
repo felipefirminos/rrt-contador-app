@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 
@@ -51,3 +51,27 @@ class ComparativoRegimesRequest(BaseModel):
     prolabore_mensal: float = Field(0.0, ge=0)
     num_socios: int = Field(1, ge=1)
     lucro_mensal_distribuicao: float = Field(0.0, ge=0)
+
+
+# ─── Rescisão ─────────────────────────────────────────────────────
+
+TipoRescisao = Literal["sem_justa_causa", "pedido_demissao", "justa_causa", "acordo_mutuo"]
+AvisoPrevio = Literal["indenizado", "trabalhado", "dispensado"]
+
+
+class RescisaoRequest(BaseModel):
+    tipo: TipoRescisao
+    salario: float = Field(..., gt=0, description="Último salário mensal (R$)")
+    anos_servico: int = Field(0, ge=0, description="Anos completos (Lei 12.506: +3 dias/ano, max 90)")
+    aviso_previo: AvisoPrevio = "indenizado"
+    dias_trabalhados_mes: Optional[int] = Field(None, ge=0, le=31)
+    meses_13_proporcional: Optional[int] = Field(
+        None, ge=0, le=12,
+        description="Avos de 13°. Se None, usa 6 (default da função).",
+    )
+    meses_ferias_proporcional: Optional[int] = Field(None, ge=0, le=12)
+    tem_ferias_vencidas: bool = False
+    periodos_ferias_vencidas: int = Field(1, ge=0, le=2, description="2 = férias dobradas")
+    saldo_fgts: float = Field(0.0, ge=0, description="Saldo FGTS para multa")
+    num_dependentes: int = Field(0, ge=0)
+    media_adicionais: float = Field(0.0, ge=0, description="Média HE/noturno/insalubridade")

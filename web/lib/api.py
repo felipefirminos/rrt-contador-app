@@ -57,6 +57,10 @@ def calc_comparativo(**kwargs) -> dict:
     return _post("/calc/comparativo-regimes", kwargs)
 
 
+def calc_rescisao(**kwargs) -> dict:
+    return _post("/calc/rescisao", kwargs)
+
+
 def chat(message: str, history: list[dict[str, str]]) -> dict:
     return _post("/chat", {"message": message, "history": history})
 
