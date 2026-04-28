@@ -233,6 +233,15 @@ def calc_irpf(**kwargs) -> dict:
     return _post("/calc/irpf", kwargs)
 
 
+def irpf_dossie(**kwargs) -> dict:
+    return _post("/calc/irpf/dossie", kwargs)
+
+
+def irpf_validar(dossie: dict, regras_excluidas: list[str] | None = None) -> dict:
+    return _post("/calc/irpf/validar",
+                 {"dossie": dossie, "regras_excluidas": regras_excluidas or []})
+
+
 def calc_cbs_ibs(**kwargs) -> dict:
     return _post("/calc/cbs-ibs", kwargs)
 

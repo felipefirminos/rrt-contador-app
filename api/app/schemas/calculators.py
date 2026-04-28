@@ -405,6 +405,73 @@ class Tema779Request(BaseModel):
 # ─── Ganho de capital (4 variantes) + Carnê-leão isolado ─────────
 
 
+# ─── IRPF — Dossiê + Validador (Round L) ─────────────────────────
+
+
+class DependenteIRPF(BaseModel):
+    nome: str
+    cpf: str
+    tipo: str = Field(..., description="filho, conjuge, pais, etc.")
+
+
+class FonteTributavelIRPF(BaseModel):
+    cnpj_fonte: str
+    nome_fonte: str
+    rendimento_anual: float = Field(..., ge=0)
+    irrf_anual: float = Field(0.0, ge=0)
+    inss_anual: float = Field(0.0, ge=0)
+
+
+class RendimentoExclusivoIRPF(BaseModel):
+    tipo: str = Field(..., description="13o, ferias, ganho_capital_acoes, etc.")
+    valor: float = Field(..., ge=0)
+    irrf_retido: float = Field(0.0, ge=0)
+
+
+class RendimentoIsentoIRPF(BaseModel):
+    tipo: str = Field(..., description="dividendos, poupanca, fgts, indenizacao, etc.")
+    codigo: Optional[str] = Field(None, description="Código RFB (09, 99, etc.)")
+    valor: float = Field(..., ge=0)
+
+
+class BemDireitoIRPF(BaseModel):
+    tipo: str = Field(..., description="imovel, veiculo, conta_corrente, acoes, crypto, etc.")
+    descricao: str
+    valor_31_12: float = Field(..., ge=0)
+    pais: str = Field("BRA", description="ISO-3 (BRA, USA, IRL, etc.)")
+
+
+class DadosContribuinteIRPF(BaseModel):
+    cpf: str = Field(..., min_length=11)
+    nome: str = Field(..., min_length=2)
+    dependentes: list[DependenteIRPF] = Field(default_factory=list)
+    pensao_alimenticia_mensal: float = Field(0.0, ge=0)
+    regime_declaracao: Optional[Literal["completa", "simplificada"]] = None
+
+
+class GerarDossieIRPFRequest(BaseModel):
+    dados_contribuinte: DadosContribuinteIRPF
+    fontes_tributaveis: list[FonteTributavelIRPF] = Field(default_factory=list)
+    rendimentos_exclusivos: list[RendimentoExclusivoIRPF] = Field(default_factory=list)
+    rendimentos_isentos: list[RendimentoIsentoIRPF] = Field(default_factory=list)
+    bens_direitos: list[BemDireitoIRPF] = Field(default_factory=list)
+    salarios_mensais: list[float] = Field(default_factory=list)
+    deducoes_anuais: list[DeducaoIRPF] = Field(default_factory=list)
+    rendimentos_exterior: list[RendimentoExterior] = Field(default_factory=list)
+    ganhos_capital: list[GanhoCapitalIRPF] = Field(default_factory=list)
+    irrf_ja_retido_anual: float = Field(0.0, ge=0)
+    validar: bool = Field(True, description="Se True, executa as 17 regras de consistência")
+    regras_excluidas: list[str] = Field(
+        default_factory=list,
+        description="Códigos a pular, ex: ['R10', 'R16']",
+    )
+
+
+class ValidarDossieRequest(BaseModel):
+    dossie: dict = Field(..., description="Dossiê IRPF previamente gerado")
+    regras_excluidas: list[str] = Field(default_factory=list)
+
+
 class GcapImovelRequest(BaseModel):
     valor_venda: float = Field(..., gt=0)
     custo_aquisicao: float = Field(..., ge=0)

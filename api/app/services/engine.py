@@ -60,6 +60,8 @@ from calc_gcap_veiculo import calcular_gcap_veiculo as _calc_gcap_veiculo  # noq
 from calc_gcap_crypto import gerar_checklist_crypto as _gcap_crypto_checklist  # noqa: E402
 from calc_gcap_etf_exterior import gerar_checklist_etf_exterior as _gcap_etf_checklist  # noqa: E402
 from calc_carne_leao import calcular_carne_leao as _calc_carne_leao  # noqa: E402
+from gerar_dossie_irpf import gerar_dossie as _gerar_dossie_irpf  # noqa: E402
+from validar_consistencia_irpf import validar_dossie as _validar_dossie_irpf  # noqa: E402
 from detector_padroes import (  # noqa: E402
     detectar_sazonalidade as _det_sazonalidade,
     detectar_padroes_cliente as _det_padroes_cliente,
@@ -548,6 +550,44 @@ def gcap_etf_exterior_checklist(
     ativos: list[dict] | None = None,
 ) -> dict[str, Any]:
     return _gcap_etf_checklist(ativos=ativos, pais_origem=pais_origem)
+
+
+def gerar_dossie_irpf(
+    dados_contribuinte: dict[str, Any],
+    fontes_tributaveis: list[dict] | None = None,
+    rendimentos_exclusivos: list[dict] | None = None,
+    rendimentos_isentos: list[dict] | None = None,
+    rendimentos_isentos_classificados: list[dict] | None = None,
+    bens_direitos: list[dict] | None = None,
+    salarios_mensais: list[float] | None = None,
+    deducoes_anuais: list[dict] | None = None,
+    rendimentos_exterior: list[dict] | None = None,
+    ganhos_capital: list[dict] | None = None,
+    irrf_ja_retido_anual: float | None = None,
+) -> dict[str, Any]:
+    return _gerar_dossie_irpf(
+        dados_contribuinte=dados_contribuinte,
+        fontes_tributaveis=fontes_tributaveis,
+        rendimentos_exclusivos=rendimentos_exclusivos,
+        rendimentos_isentos=rendimentos_isentos,
+        rendimentos_isentos_classificados=rendimentos_isentos_classificados,
+        bens_direitos=bens_direitos,
+        salarios_mensais=salarios_mensais,
+        deducoes_anuais=deducoes_anuais,
+        rendimentos_exterior=rendimentos_exterior,
+        ganhos_capital=ganhos_capital,
+        irrf_ja_retido_anual=irrf_ja_retido_anual,
+    )
+
+
+def validar_dossie_irpf(
+    dossie: dict[str, Any],
+    regras_excluidas: list[str] | None = None,
+) -> dict[str, Any]:
+    return _validar_dossie_irpf(
+        dossie=dossie,
+        regras_excluidas=regras_excluidas,
+    )
 
 
 def calc_carne_leao(
@@ -1280,6 +1320,56 @@ CALCULATOR_TOOLS = [
         },
     },
     {
+        "name": "gerar_dossie_irpf",
+        "description": (
+            "Gera dossiê IRPF completo de pessoa física com 12 seções: enquadramento, "
+            "dados, rendimentos tributáveis, exclusivos, isentos, deduções, bens, "
+            "ganhos de capital, exterior, comparativo completa×simplificada, e validação "
+            "cruzada. Orquestra calcular_irpf_integrado + validar_consistencia_irpf "
+            "(17 regras). Retorna dossiê estruturado pronto para entregar ao cliente."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "dados_contribuinte": {"type": "object",
+                    "description": "{cpf, nome, dependentes[], pensao_alimenticia_mensal}"},
+                "fontes_tributaveis": {"type": "array", "items": {"type": "object"}},
+                "rendimentos_exclusivos": {"type": "array", "items": {"type": "object"}},
+                "rendimentos_isentos": {"type": "array", "items": {"type": "object"}},
+                "bens_direitos": {"type": "array", "items": {"type": "object"}},
+                "deducoes_anuais": {"type": "array", "items": {"type": "object"}},
+                "ganhos_capital": {"type": "array", "items": {"type": "object"}},
+                "rendimentos_exterior": {"type": "array", "items": {"type": "object"}},
+                "salarios_mensais": {"type": "array", "items": {"type": "number"}},
+                "irrf_ja_retido_anual": {"type": "number"},
+            },
+            "required": ["dados_contribuinte"],
+        },
+    },
+    {
+        "name": "validar_dossie_irpf",
+        "description": (
+            "Valida dossiê IRPF contra 17 regras de consistência cruzada (R01-R17). "
+            "Detecta: IRRF total cruzado entre seções, limites de educação/PGBL/PGBL "
+            "com regime obrigatório, crypto sem custódia, exterior sem PTAX, "
+            "tratado Brasil-EUA inexistente, completa vs simplificada obrigatória, "
+            "saldo de imposto coerente, dependentes com CPF, bens exterior convertidos, "
+            "código aluguel não-dedutível, exercício vs ano-calendário, dividendos "
+            "acima de isenção. Retorna inconsistências por severidade + status final."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "dossie": {"type": "object", "description": "Dossiê completo"},
+                "regras_excluidas": {
+                    "type": "array", "items": {"type": "string"},
+                    "description": "Códigos a pular (ex: ['R10', 'R16'])",
+                },
+            },
+            "required": ["dossie"],
+        },
+    },
+    {
         "name": "calc_custo_empregado",
         "description": (
             "Calcula custo TOTAL mensal/anual de empregado CLT (Lei 8.212/91 + LC "
@@ -1690,6 +1780,8 @@ TOOL_DISPATCH = {
     "gcap_crypto_checklist": gcap_crypto_checklist,
     "gcap_etf_exterior_checklist": gcap_etf_exterior_checklist,
     "calc_carne_leao": calc_carne_leao,
+    "gerar_dossie_irpf": gerar_dossie_irpf,
+    "validar_dossie_irpf": validar_dossie_irpf,
     "calc_distribuicao_lucros": calc_distribuicao_lucros,
     "calc_irpf_integrado": calc_irpf_integrado,
     "calc_cbs_ibs": calc_cbs_ibs,

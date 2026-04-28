@@ -23,6 +23,8 @@ from app.schemas.calculators import (
     GcapETFExteriorRequest,
     GcapImovelRequest,
     GcapVeiculoRequest,
+    GerarDossieIRPFRequest,
+    ValidarDossieRequest,
     LucroPresumidoRequest,
     LucroRealRequest,
     RetencoesPJRequest,
@@ -159,6 +161,35 @@ def darf_buscar(req: DarfBuscaRequest) -> dict:
 @router.post("/darf/regime")
 def darf_regime(req: DarfRegimeRequest) -> dict:
     return engine.darf_listar_regime(req.regime)
+
+
+@router.post("/irpf/dossie")
+def irpf_dossie(req: GerarDossieIRPFRequest) -> dict:
+    """Gera dossiê IRPF completo (12 seções) e opcionalmente valida (17 regras)."""
+    payload = req.model_dump()
+    validar = payload.pop("validar")
+    regras_excluidas = payload.pop("regras_excluidas")
+
+    dossie = engine.gerar_dossie_irpf(**payload)
+    if "erro" in dossie:
+        raise HTTPException(status_code=422, detail=dossie["erro"])
+
+    response: dict = {"dossie": dossie}
+    if validar:
+        response["validacao"] = engine.validar_dossie_irpf(
+            dossie=dossie,
+            regras_excluidas=regras_excluidas,
+        )
+    return response
+
+
+@router.post("/irpf/validar")
+def irpf_validar(req: ValidarDossieRequest) -> dict:
+    """Valida um dossiê IRPF previamente gerado contra as 17 regras de consistência."""
+    return engine.validar_dossie_irpf(
+        dossie=req.dossie,
+        regras_excluidas=req.regras_excluidas,
+    )
 
 
 @router.post("/gcap/imovel")

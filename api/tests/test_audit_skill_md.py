@@ -205,6 +205,71 @@ class TestIRPFIntegrado:
         assert "ganhos_capital" in r.json()
 
 
+# IRPF Dossiê + Validador — 12 seções + 17 regras de consistência
+class TestIRPFDossie:
+    BASE_PAYLOAD = {
+        "dados_contribuinte": {
+            "cpf": "111.222.333-44",
+            "nome": "João da Silva",
+            "dependentes": [{"nome": "Maria", "cpf": "999.888.777-66", "tipo": "filho"}],
+        },
+        "fontes_tributaveis": [{
+            "cnpj_fonte": "12.345.678/0001-99",
+            "nome_fonte": "Empresa X",
+            "rendimento_anual": 96000.0,
+            "irrf_anual": 11828.64,
+            "inss_anual": 11058.12,
+        }],
+        "deducoes_anuais": [{"tipo": "saude", "valor": 5000.0,
+                             "documentos": ["recibo"]}],
+    }
+
+    def test_dossie_contem_12_secoes(self, client):
+        r = client.post("/calc/irpf/dossie", json={**self.BASE_PAYLOAD, "validar": False})
+        assert r.status_code == 200
+        secoes = [k for k in r.json()["dossie"] if k.startswith("secao_")]
+        assert len(secoes) == 12  # secao_0 .. secao_11
+
+    def test_dossie_com_validacao_executa_17_regras(self, client):
+        r = client.post("/calc/irpf/dossie", json={**self.BASE_PAYLOAD, "validar": True})
+        d = r.json()
+        assert "validacao" in d
+        assert d["validacao"]["total_regras"] == 17
+        assert d["validacao"]["status"] in ("APROVADO", "ALERTAS", "REPROVADO")
+
+    def test_validacao_ausente_quando_validar_false(self, client):
+        r = client.post("/calc/irpf/dossie",
+                        json={**self.BASE_PAYLOAD, "validar": False})
+        assert "validacao" not in r.json()
+
+    def test_regras_excluidas_reduz_contagem(self, client):
+        # Primeiro gera dossiê
+        r = client.post("/calc/irpf/dossie",
+                        json={**self.BASE_PAYLOAD, "validar": False})
+        dossie = r.json()["dossie"]
+
+        # Valida com R11 excluída
+        r2 = client.post("/calc/irpf/validar", json={
+            "dossie": dossie, "regras_excluidas": ["R11"],
+        })
+        assert r2.json()["total_regras"] == 16
+
+    def test_validar_dossie_isolado(self, client):
+        r = client.post("/calc/irpf/dossie",
+                        json={**self.BASE_PAYLOAD, "validar": False})
+        dossie = r.json()["dossie"]
+        r2 = client.post("/calc/irpf/validar", json={"dossie": dossie})
+        assert r2.json()["status"] in ("APROVADO", "ALERTAS", "REPROVADO")
+
+    def test_payload_minimo_contribuinte_apenas(self, client):
+        """Payload mínimo: só CPF + nome + dependentes vazios."""
+        r = client.post("/calc/irpf/dossie", json={
+            "dados_contribuinte": {"cpf": "111.222.333-44", "nome": "Solteiro"},
+            "validar": True,
+        })
+        assert r.status_code == 200
+
+
 # Ganho de capital — 4 variantes (imóvel, veículo, crypto, ETF) + carnê-leão
 class TestGcapImovel:
     def test_ganho_padrao_15pct(self, client):
