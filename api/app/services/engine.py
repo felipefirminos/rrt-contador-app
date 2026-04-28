@@ -272,6 +272,24 @@ CALCULATOR_TOOLS = [
         },
     },
     {
+        "name": "sugerir_anexo_engenharia",
+        "description": (
+            "SKILL.md §5: sugere Anexo correto (III/V vs IV) para CNAEs ambíguos de "
+            "engenharia/arquitetura/construção (71.12-0-00, 71.11-1-00, 43.29-1-99…). "
+            "Quando há execução de obras OU cessão de mão de obra → Anexo IV (CPP separada). "
+            "Quando é apenas consultoria/projetos/laudos → Anexo III/V c/ Fator R. "
+            "Use ANTES de calcular DAS quando o usuário menciona engenharia/arquitetura."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "cnae": {"type": "string", "description": "CNAE com ou sem máscara"},
+                "executa_obras": {"type": "boolean", "default": False},
+                "cessao_mao_obra": {"type": "boolean", "default": False},
+            },
+        },
+    },
+    {
         "name": "calc_distribuicao_lucros",
         "description": (
             "Calcula tributação sobre distribuição de lucros (Lei 15.270/2025). "
@@ -342,6 +360,7 @@ CALCULATOR_TOOLS = [
 
 TOOL_DISPATCH = {
     "calc_simples_das": calc_simples_das,
+    "sugerir_anexo_engenharia": sugerir_anexo_engenharia,
     "calc_prolabore": calc_prolabore,
     "calc_comparativo": calc_comparativo,
     "calc_rescisao": calc_rescisao,

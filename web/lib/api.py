@@ -45,6 +45,13 @@ def calc_simples_das(anexo: str, rbt12: float, receita_mes: float, folha12: floa
     })
 
 
+def sugerir_anexo_engenharia(cnae: str | None = None, executa_obras: bool = False,
+                             cessao_mao_obra: bool = False) -> dict:
+    return _post("/calc/sugerir-anexo-engenharia", {
+        "cnae": cnae, "executa_obras": executa_obras, "cessao_mao_obra": cessao_mao_obra,
+    })
+
+
 def calc_prolabore(valor_bruto: float, regime: str, num_dependentes: int = 0,
                    pensao_alimenticia: float = 0.0) -> dict:
     return _post("/calc/prolabore", {

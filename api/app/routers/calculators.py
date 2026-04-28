@@ -9,6 +9,7 @@ from app.schemas.calculators import (
     ProlaboreRequest,
     RescisaoRequest,
     SimplesDASRequest,
+    SugerirAnexoRequest,
 )
 from app.services import engine
 
@@ -27,6 +28,16 @@ def simples_das(req: SimplesDASRequest) -> dict:
     if "erro" in result:
         raise HTTPException(status_code=422, detail=result["erro"])
     return result
+
+
+@router.post("/sugerir-anexo-engenharia")
+def sugerir_anexo_engenharia(req: SugerirAnexoRequest) -> dict:
+    """SKILL.md §5: enquadramento Anexo IV vs III/V para CNAEs ambíguos."""
+    return engine.sugerir_anexo_engenharia(
+        cnae=req.cnae,
+        executa_obras=req.executa_obras,
+        cessao_mao_obra=req.cessao_mao_obra,
+    )
 
 
 @router.post("/prolabore")

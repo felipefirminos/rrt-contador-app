@@ -20,6 +20,21 @@ class SimplesDASRequest(BaseModel):
     folha12: float = Field(0.0, ge=0, description="Folha 12 meses incl. pró-labore + encargos")
 
 
+class SugerirAnexoRequest(BaseModel):
+    cnae: Optional[str] = Field(
+        None,
+        description="CNAE com ou sem máscara, ex: '71.12-0-00' ou '7112000'",
+    )
+    executa_obras: bool = Field(
+        False,
+        description="A empresa executa fisicamente obras/serviços de campo? (não é só projetar)",
+    )
+    cessao_mao_obra: bool = Field(
+        False,
+        description="Há cessão de mão de obra (pessoal subordinado ao tomador)?",
+    )
+
+
 # ─── Pró-labore ───────────────────────────────────────────────────
 
 
