@@ -19,12 +19,14 @@ from app.schemas.calculators import (
     ISSRequest,
     MEIResumoRequest,
     MunicipioBuscaRequest,
+    PerDcompMinutaRequest,
     PrescricaoRequest,
     ProlaboreRequest,
     RescisaoRequest,
     SimplesDASRequest,
     SugerirAnexoRequest,
     Tema69Request,
+    Tema779Request,
 )
 from app.services import engine
 
@@ -202,6 +204,24 @@ def prescricao(req: PrescricaoRequest) -> dict:
         data_pagamento=req.data_pagamento,
         data_referencia=req.data_referencia,
     )
+    if "erro" in result:
+        raise HTTPException(status_code=422, detail=result["erro"])
+    return result
+
+
+@router.post("/recuperacao/tema-779")
+def tema_779(req: Tema779Request) -> dict:
+    """STJ Tema 779 — conceito amplo de insumo (PIS/COFINS Lucro Real)."""
+    result = engine.calc_tema_779(insumos=[i.model_dump() for i in req.insumos])
+    if "erro" in result:
+        raise HTTPException(status_code=422, detail=result["erro"])
+    return result
+
+
+@router.post("/recuperacao/perdcomp-minuta")
+def perdcomp_minuta(req: PerDcompMinutaRequest) -> dict:
+    """Gera minuta da memória de cálculo PER/DCOMP a partir do template RRT."""
+    result = engine.gerar_minuta_perdcomp(**req.model_dump())
     if "erro" in result:
         raise HTTPException(status_code=422, detail=result["erro"])
     return result

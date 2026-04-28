@@ -205,6 +205,119 @@ class TestIRPFIntegrado:
         assert "ganhos_capital" in r.json()
 
 
+# Tema 779 STJ — conceito amplo de insumo (REsp 1.221.170/PR)
+class TestTema779:
+    def test_materia_prima_direta_forte(self, client):
+        """MATERIA_PRIMA_DIRETA → FORTE: PIS 1,65% + COFINS 7,6% = 9,25%."""
+        r = client.post("/calc/recuperacao/tema-779", json={
+            "insumos": [{
+                "descricao": "Aço", "categoria": "MATERIA_PRIMA_DIRETA",
+                "valor_total_competencia": 100000, "competencia": "03/2025",
+            }],
+        })
+        d = r.json()
+        a = d["analises"][0]
+        assert a["forca_tese"] == "FORTE"
+        # 9,25% × 100K = 9250 (1650 PIS + 7600 COFINS)
+        assert a["credito_total"] == 9250.0
+        assert a["credito_pis"] == 1650.0
+        assert a["credito_cofins"] == 7600.0
+
+    def test_mao_de_obra_pf_vedacao_legal(self, client):
+        """MAO_DE_OBRA_PF → NAO_APLICAVEL com crédito ZERO."""
+        r = client.post("/calc/recuperacao/tema-779", json={
+            "insumos": [{
+                "descricao": "Autônomo", "categoria": "MAO_DE_OBRA_PF",
+                "valor_total_competencia": 5000, "competencia": "01/2025",
+            }],
+        })
+        a = r.json()["analises"][0]
+        assert a["forca_tese"] == "NAO_APLICAVEL"
+        assert a["credito_total"] == 0
+
+    def test_categoria_invalida_rejeitada(self, client):
+        r = client.post("/calc/recuperacao/tema-779", json={
+            "insumos": [{
+                "descricao": "X", "categoria": "INEXISTENTE",
+                "valor_total_competencia": 1000, "competencia": "01/2025",
+            }],
+        })
+        # Pydantic Literal enforce → 422
+        assert r.status_code == 422
+
+    def test_consolidacao_separa_por_forca(self, client):
+        r = client.post("/calc/recuperacao/tema-779", json={
+            "insumos": [
+                {"descricao": "Aço", "categoria": "MATERIA_PRIMA_DIRETA",
+                 "valor_total_competencia": 100000, "competencia": "03/2025"},
+                {"descricao": "EPI", "categoria": "EPI_OBRIGATORIO_NR",
+                 "valor_total_competencia": 15000, "competencia": "03/2025"},
+                {"descricao": "Mat. escritório", "categoria": "MATERIAL_ESCRITORIO",
+                 "valor_total_competencia": 3000, "competencia": "03/2025"},
+            ],
+        })
+        d = r.json()
+        # Forte: 100K × 9,25% = 9250
+        assert d["credito_alta_confianca"] == 9250.0
+        # Média: 15K × 9,25% = 1387.50
+        assert d["credito_media_confianca"] == 1387.5
+        # Fraca: 3K × 9,25% = 277.50
+        assert d["credito_baixa_confianca"] == 277.5
+
+
+# PER/DCOMP — geração de minuta a partir do template RRT
+class TestPerDcompMinuta:
+    def test_gera_minuta_substituindo_placeholders(self, client):
+        r = client.post("/calc/recuperacao/perdcomp-minuta", json={
+            "cliente_razao_social": "EXEMPLO LTDA",
+            "cliente_cnpj": "12.345.678/0001-99",
+            "regime_tributario": "LUCRO_PRESUMIDO",
+            "tese": "Tema 69 STF — Exclusão do ICMS",
+            "leading_case": "RE 574.706/PR",
+            "competencia_inicial": "01/2021",
+            "competencia_final": "12/2024",
+            "num_competencias": 48,
+            "total_principal": 120000.0,
+            "contador_nome": "Richard Firmino",
+            "contador_crc": "SP-12345/O",
+        })
+        assert r.status_code == 200
+        d = r.json()
+        md = d["minuta_markdown"]
+        assert "EXEMPLO LTDA" in md
+        assert "12.345.678/0001-99" in md
+        assert "SP-12345/O" in md
+        assert "Resumo executivo" in md
+        # Aliquotas do regime informado
+        assert "0,65%" in md  # PIS Lucro Presumido
+        assert "3%" in md     # COFINS Lucro Presumido
+
+    def test_aliquotas_corretas_por_regime(self, client):
+        # Lucro Real → 1,65% + 7,6% = 9,25%
+        r = client.post("/calc/recuperacao/perdcomp-minuta", json={
+            "cliente_razao_social": "Empresa X Ltda", "cliente_cnpj": "00.000.000/0001-00",
+            "regime_tributario": "LUCRO_REAL", "tese": "Tema 69", "leading_case": "RE 574.706",
+            "competencia_inicial": "01/2024", "competencia_final": "12/2024",
+            "num_competencias": 12, "total_principal": 100,
+            "contador_nome": "Contador X", "contador_crc": "SP-1/O",
+        })
+        md = r.json()["minuta_markdown"]
+        assert "1,65%" in md
+        assert "7,6%" in md
+        assert "9,25%" in md
+
+    def test_alerta_quando_prescricao_nao_verificada(self, client):
+        r = client.post("/calc/recuperacao/perdcomp-minuta", json={
+            "cliente_razao_social": "Empresa X Ltda", "cliente_cnpj": "00.000.000/0001-00",
+            "regime_tributario": "LUCRO_REAL", "tese": "Tema 69", "leading_case": "RE 574.706",
+            "competencia_inicial": "01/2024", "competencia_final": "12/2024",
+            "num_competencias": 12, "total_principal": 100,
+            "contador_nome": "Contador X", "contador_crc": "SP-1/O",
+            "sem_prescricao": False,
+        })
+        assert "PRESCRIÇÃO NÃO VERIFICADA" in r.json()["minuta_markdown"]
+
+
 # DIFAL ICMS — EC 87/2015 + LC 190/2022
 class TestDIFAL:
     def test_difal_basico(self, client):

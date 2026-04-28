@@ -366,3 +366,63 @@ class ISSRequest(BaseModel):
 
 class MunicipioBuscaRequest(BaseModel):
     texto: str = Field(..., min_length=2)
+
+
+# ─── Tema 779 STJ + PER/DCOMP Minuta ──────────────────────────────
+
+CategoriaInsumo = Literal[
+    "MATERIA_PRIMA_DIRETA",
+    "EMBALAGEM_PRIMARIA",
+    "ENERGIA_ELETRICA_PRODUTIVA",
+    "COMBUSTIVEL_MAQUINA_PRODUTIVA",
+    "EPI_OBRIGATORIO_NR",
+    "SERVICOS_MANUTENCAO_MAQUINARIO",
+    "FRETE_INTERNO_ENTRE_ESTABELECIMENTOS",
+    "PRODUTOS_LIMPEZA_AREA_PRODUTIVA",
+    "ANALISES_LABORATORIAIS_QUALIDADE",
+    "MATERIAL_ESCRITORIO",
+    "DESPESAS_ADMINISTRATIVAS",
+    "MARKETING_PUBLICIDADE",
+    "ALIMENTACAO_FUNCIONARIOS",
+    "MAO_DE_OBRA_PF",
+    "TRIBUTOS_RECUPERAVEIS",
+]
+
+
+class InsumoTema779(BaseModel):
+    descricao: str = Field(..., min_length=2)
+    categoria: CategoriaInsumo
+    valor_total_competencia: float = Field(..., gt=0)
+    competencia: str = Field(..., description="MM/AAAA")
+    justificativa_tecnica: str = ""
+    tem_laudo_tecnico: bool = False
+
+
+class Tema779Request(BaseModel):
+    insumos: list[InsumoTema779] = Field(..., min_length=1)
+
+
+class PerDcompMinutaRequest(BaseModel):
+    """Gera memória de cálculo PER/DCOMP a partir do template RRT."""
+    cliente_razao_social: str = Field(..., min_length=2)
+    cliente_cnpj: str = Field(..., min_length=14)
+    regime_tributario: Literal["LUCRO_REAL", "LUCRO_PRESUMIDO"]
+    tese: str = Field(
+        "Tema 69 STF — Exclusão do ICMS da base de PIS/COFINS",
+        description="Identificação da tese invocada",
+    )
+    leading_case: str = Field("RE 574.706/PR")
+    competencia_inicial: str = Field(..., description="MM/AAAA")
+    competencia_final: str = Field(..., description="MM/AAAA")
+    num_competencias: int = Field(..., gt=0)
+    total_principal: float = Field(..., ge=0, description="Total recuperável (R$)")
+    total_atualizado: Optional[float] = Field(
+        None, description="Total atualizado pela SELIC, opcional",
+    )
+    contador_nome: str = Field(..., min_length=2)
+    contador_crc: str = Field(...)
+    advogado_nome: Optional[str] = Field(None, min_length=2)
+    advogado_oab: Optional[str] = None
+    forma_recuperacao: Literal["DCOMP", "PER", "RESSARCIMENTO"] = "DCOMP"
+    ultimo_dia_pleito: Optional[str] = Field(None, description="DD/MM/AAAA")
+    sem_prescricao: bool = Field(True, description="Confirmar prescrição verificada")

@@ -128,6 +128,14 @@ def buscar_municipio(texto: str) -> dict:
     return _post("/calc/iss/buscar-municipio", {"texto": texto})
 
 
+def calc_tema_779(insumos: list[dict[str, Any]]) -> dict:
+    return _post("/calc/recuperacao/tema-779", {"insumos": insumos})
+
+
+def gerar_minuta_perdcomp(**kwargs) -> dict:
+    return _post("/calc/recuperacao/perdcomp-minuta", kwargs)
+
+
 def calc_folha_batch(empregados: list[dict[str, Any]], regime: str = "presumido_real",
                      competencia: str | None = None, rat_pct: float = 2.0,
                      fap: float = 1.0) -> dict:

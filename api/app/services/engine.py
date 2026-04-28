@@ -63,6 +63,10 @@ try:
         verificar_prescricao as _verificar_prescricao,
         calcular_periodo_recuperavel as _periodo_recuperavel,
     )
+    from calcular_tema_779 import (  # noqa: E402
+        Insumo as _Insumo779,
+        consolidar_analise as _consolidar_779,
+    )
     REC_TRIB_DISPONIVEL = True
 except ImportError:
     REC_TRIB_DISPONIVEL = False
@@ -265,6 +269,165 @@ def resumo_mei(
         receita_bruta_anual=receita_bruta_anual,
         meses_atividade=meses_atividade,
     )
+
+
+def calc_tema_779(insumos: list[dict[str, Any]]) -> dict[str, Any]:
+    """STJ Tema 779 — insumo gerador de crédito de PIS/COFINS."""
+    if not REC_TRIB_DISPONIVEL:
+        return {"erro": "Módulo de recuperação tributária não disponível"}
+
+    from decimal import Decimal as _Dec
+
+    insumos_engine = []
+    for it in insumos:
+        insumos_engine.append(_Insumo779(
+            descricao=it["descricao"],
+            categoria=it["categoria"],
+            valor_total_competencia=_Dec(str(it["valor_total_competencia"])),
+            competencia=it["competencia"],
+            justificativa_tecnica=it.get("justificativa_tecnica", ""),
+            tem_laudo_tecnico=it.get("tem_laudo_tecnico", False),
+        ))
+
+    try:
+        raw = _consolidar_779(insumos_engine)
+    except ValueError as exc:
+        return {"erro": str(exc)}
+
+    def _ser(a):
+        return {
+            "descricao": a.insumo.descricao,
+            "categoria": a.insumo.categoria,
+            "valor_competencia": float(a.insumo.valor_total_competencia),
+            "competencia": a.insumo.competencia,
+            "tem_laudo_tecnico": a.insumo.tem_laudo_tecnico,
+            "forca_tese": a.forca_tese,
+            "credito_pis": float(a.credito_pis),
+            "credito_cofins": float(a.credito_cofins),
+            "credito_total": float(a.credito_total),
+            "recomendacao": a.recomendacao,
+            "riscos": a.riscos,
+        }
+
+    return {
+        "analises": [_ser(a) for a in raw["analises"]],
+        "credito_alta_confianca": float(raw["credito_alta_confianca"]),
+        "credito_media_confianca": float(raw["credito_media_confianca"]),
+        "credito_baixa_confianca": float(raw["credito_baixa_confianca"]),
+        "credito_total_bruto": float(raw["credito_total_bruto"]),
+        "aliquota_pis_pct": 1.65,
+        "aliquota_cofins_pct": 7.6,
+        "aliquota_total_pct": 9.25,
+        "aviso_selic": (
+            "⚠️ Valor é PRINCIPAL apenas. Aplicar SELIC e consultar advogado "
+            "tributarista (cláusula CRC + OAB) antes do PER/DCOMP."
+        ),
+        "base_legal": (
+            "STJ Tema 779 — REsp 1.221.170/PR (recursos repetitivos, conceito "
+            "amplo de insumo: essencialidade + relevância)"
+        ),
+    }
+
+
+def gerar_minuta_perdcomp(
+    cliente_razao_social: str,
+    cliente_cnpj: str,
+    regime_tributario: str,
+    tese: str,
+    leading_case: str,
+    competencia_inicial: str,
+    competencia_final: str,
+    num_competencias: int,
+    total_principal: float,
+    contador_nome: str,
+    contador_crc: str,
+    total_atualizado: float | None = None,
+    advogado_nome: str | None = None,
+    advogado_oab: str | None = None,
+    forma_recuperacao: str = "DCOMP",
+    ultimo_dia_pleito: str | None = None,
+    sem_prescricao: bool = True,
+) -> dict[str, Any]:
+    """Gera minuta da memória de cálculo PER/DCOMP a partir do template RRT.
+
+    Lê o template em engine/recuperacao_tributaria/templates/template_perdcomp.md
+    e substitui os placeholders pelas informações fornecidas.
+    """
+    template_path = ENGINE_DIR / "recuperacao_tributaria" / "templates" / "template_perdcomp.md"
+    if not template_path.exists():
+        return {"erro": f"Template não encontrado: {template_path}"}
+
+    template = template_path.read_text(encoding="utf-8")
+
+    from datetime import date as _date
+    hoje = _date.today().strftime("%d/%m/%Y")
+
+    # Aliquotas conforme regime
+    if regime_tributario == "LUCRO_REAL":
+        aliq_pis, aliq_cofins, aliq_total = "1,65%", "7,6%", "9,25%"
+    else:
+        aliq_pis, aliq_cofins, aliq_total = "0,65%", "3%", "3,65%"
+
+    # Mapa de substituições (placeholder → valor)
+    formato_brl = lambda v: f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+    sub = {
+        "<RAZÃO SOCIAL>": cliente_razao_social,
+        "<00.000.000/0001-00>": cliente_cnpj,
+        "<LUCRO_REAL / LUCRO_PRESUMIDO>": regime_tributario,
+        "<ex.: Tema 69 STF — Exclusão do ICMS da base de PIS/COFINS>": tese,
+        "<ex.: RE 574.706/PR>": leading_case,
+        "<DD/MM/AAAA>": hoje,
+        "<Nome CRC>": f"{contador_nome} (CRC {contador_crc})",
+        "<Nome OAB>": (
+            f"{advogado_nome} (OAB {advogado_oab})" if advogado_nome and advogado_oab
+            else "[a definir]"
+        ),
+    }
+
+    # Substitui placeholders inline
+    for placeholder, valor in sub.items():
+        template = template.replace(placeholder, valor)
+
+    # Adiciona seção pré-preenchida com o resumo do cálculo no início
+    resumo = f"""
+> 📊 **Resumo executivo gerado automaticamente em {hoje}:**
+>
+> - Cliente: **{cliente_razao_social}** (CNPJ {cliente_cnpj}) — regime {regime_tributario}
+> - Tese: {tese} ({leading_case})
+> - Período: **{competencia_inicial}** a **{competencia_final}** ({num_competencias} competências)
+> - Alíquotas aplicadas: PIS {aliq_pis} + COFINS {aliq_cofins} = **{aliq_total}**
+> - **Total principal:** {formato_brl(total_principal)}
+"""
+    if total_atualizado is not None:
+        resumo += f"> - **Total atualizado pela SELIC:** {formato_brl(total_atualizado)}\n"
+    resumo += f"> - Forma de recuperação: **{forma_recuperacao}**\n"
+    if ultimo_dia_pleito:
+        resumo += f"> - ⏰ Último dia para pleito: **{ultimo_dia_pleito}**\n"
+    if not sem_prescricao:
+        resumo += (
+            "> - 🚨 **PRESCRIÇÃO NÃO VERIFICADA** — bloquear processo até checagem.\n"
+        )
+    resumo += "\n---\n"
+
+    minuta_md = template.replace("\n---\n\n## 1. Identificação", resumo + "\n## 1. Identificação")
+
+    return {
+        "minuta_markdown": minuta_md,
+        "tamanho_chars": len(minuta_md),
+        "cliente": cliente_razao_social,
+        "cnpj": cliente_cnpj,
+        "tese": tese,
+        "principal": total_principal,
+        "atualizado": total_atualizado,
+        "data_geracao": hoje,
+        "aviso": (
+            "⚠️ Esta é uma MINUTA. Antes de protocolar: (1) preencher tabelas "
+            "competência-a-competência da seção 4.1 com a memória detalhada, "
+            "(2) anexar EFD-Contribuições retificadoras e demais documentos da "
+            "seção 6, (3) revisão por contador CRC + advogado OAB."
+        ),
+    }
 
 
 def calc_difal(
@@ -784,6 +947,76 @@ CALCULATOR_TOOLS = [
         },
     },
     {
+        "name": "calc_tema_779",
+        "description": (
+            "STJ Tema 779 (REsp 1.221.170/PR) — conceito amplo de insumo gerador de "
+            "crédito de PIS/COFINS no regime não-cumulativo (Lucro Real). Aplica "
+            "essencialidade + relevância. Categorias: FORTE (matéria-prima, embalagem, "
+            "energia/combustível produtivo), MEDIA (EPI obrigatório, manutenção, "
+            "frete interno, limpeza área produtiva — exige laudo), FRACA (mat. escritório, "
+            "marketing — alto risco de glosa), NAO_APLICAVEL (mão-de-obra PF, tributos "
+            "recuperáveis — vedação legal). Alíquota total 9,25%."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "insumos": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "descricao": {"type": "string"},
+                            "categoria": {"type": "string"},
+                            "valor_total_competencia": {"type": "number"},
+                            "competencia": {"type": "string", "description": "MM/AAAA"},
+                            "justificativa_tecnica": {"type": "string"},
+                            "tem_laudo_tecnico": {"type": "boolean"},
+                        },
+                        "required": ["descricao", "categoria",
+                                     "valor_total_competencia", "competencia"],
+                    },
+                },
+            },
+            "required": ["insumos"],
+        },
+    },
+    {
+        "name": "gerar_minuta_perdcomp",
+        "description": (
+            "Gera MINUTA de memória de cálculo PER/DCOMP a partir do template RRT "
+            "(IN RFB 2.055/2021 + Lei 9.430/96 art. 74 + CTN 165-170). Substitui "
+            "placeholders pelos dados do cliente, cláusula CRC+OAB, alíquotas conforme "
+            "regime, resumo executivo. Retorna markdown pronto para revisão humana — "
+            "NÃO é o documento final, exige preenchimento das tabelas competência-a-"
+            "competência e revisão jurídica antes do protocolo."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "cliente_razao_social": {"type": "string"},
+                "cliente_cnpj": {"type": "string"},
+                "regime_tributario": {"type": "string", "enum": ["LUCRO_REAL", "LUCRO_PRESUMIDO"]},
+                "tese": {"type": "string"},
+                "leading_case": {"type": "string"},
+                "competencia_inicial": {"type": "string"},
+                "competencia_final": {"type": "string"},
+                "num_competencias": {"type": "integer"},
+                "total_principal": {"type": "number"},
+                "total_atualizado": {"type": "number"},
+                "contador_nome": {"type": "string"},
+                "contador_crc": {"type": "string"},
+                "advogado_nome": {"type": "string"},
+                "advogado_oab": {"type": "string"},
+                "forma_recuperacao": {"type": "string", "enum": ["DCOMP", "PER", "RESSARCIMENTO"]},
+                "ultimo_dia_pleito": {"type": "string"},
+                "sem_prescricao": {"type": "boolean"},
+            },
+            "required": ["cliente_razao_social", "cliente_cnpj", "regime_tributario",
+                         "tese", "leading_case", "competencia_inicial", "competencia_final",
+                         "num_competencias", "total_principal", "contador_nome", "contador_crc"],
+        },
+    },
+    {
         "name": "calc_difal",
         "description": (
             "Calcula DIFAL (Diferencial de Alíquota ICMS) — EC 87/2015, LC 190/2022. "
@@ -1069,6 +1302,8 @@ TOOL_DISPATCH = {
     "darf_buscar": darf_buscar,
     "calc_tema_69": calc_tema_69,
     "verificar_prescricao": verificar_prescricao,
+    "calc_tema_779": calc_tema_779,
+    "gerar_minuta_perdcomp": gerar_minuta_perdcomp,
     "calc_difal": calc_difal,
     "calc_icms_st": calc_icms_st,
     "calc_iss": calc_iss,
