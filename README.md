@@ -9,7 +9,7 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
   system prompt e as calculadoras expostas como **tools** — o assistente
   chama as funções reais ao invés de improvisar números
 
-## Calculadoras expostas (v0.9 — 35 ferramentas + parsers + histórico + auto-record + IRPF dossiê)
+## Calculadoras expostas (v1.0 — 35 ferramentas + parsers + histórico + auto-record + IRPF dossiê + dashboard + backup)
 
 ### Tributário PJ
 | Endpoint | Validação empírica |
@@ -151,13 +151,52 @@ em headers `X-Cliente-CNPJ` / `X-Cliente-Texto`. Detecção via
 `try: import streamlit` — fora do contexto Streamlit (testes), retorna
 dict vazio (não interfere).
 
+### Dashboard executivo (Round P — v1.0)
+
+Página `Dashboard` (Streamlit) consolida o histórico em visualizações:
+
+- **KPIs**: interações totais, clientes ativos, taxa de aprovação, fluxo dominante
+- **Avaliações**: bar chart de aprovado/rejeitado/ajustado/pendente
+- **Top 10 tags + Top 10 fluxos** lado a lado
+- **Distribuição por origem** (direto, api, whatsapp, gestta)
+- **Sazonalidade**: line chart de distribuição mensal + alertas para picos >1,5× média + correlação com calendário fiscal
+- **Clusters de tags coocorrentes** (≥3 vezes juntas)
+- **Padrões de correção**: tags em interações 'ajustadas' viram validações reforçadas
+
+Quando o histórico está vazio, o dashboard guia o usuário até as 3
+formas de popular (sidebar, header HTTP, registro manual).
+
+### Backup / Restore (Round N — v1.0)
+
+```bash
+# Export — JSON timestampado em backups/
+./scripts/export-db.sh
+# → backups/rrt-2025-04-28-143012.json
+
+# Export para path explícito
+./scripts/export-db.sh /tmp/foo.json
+
+# Import (merge — INSERT OR IGNORE por id, idempotente)
+./scripts/import-db.sh backups/rrt-2025-04-28-143012.json
+
+# Replace (DELETE FROM antes de inserir, com confirmação interativa)
+./scripts/import-db.sh backups/foo.json --replace
+
+# Replace silencioso (use com cuidado em automação)
+./scripts/import-db.sh backups/foo.json --replace -y
+```
+
+Schema versionado (`SCHEMA_VERSION=1`); imports com `schema_version`
+diferente são rejeitados. Pasta `backups/` no `.gitignore` (DBs locais
+não vão pro repo).
+
 ### LLM
 | `POST /chat` + `POST /chat/stream` | 33 ferramentas como Anthropic tools |
 
 ## Qualidade
 
 - **57 scripts upstream passam seus testes próprios** (~1835 asserções) na cópia em `engine/`
-- **137 testes pytest** na API (`api/tests/`) cobrindo:
+- **144 testes pytest** na API (`api/tests/`) cobrindo:
   - Auditoria contra os 7 erros recorrentes do SKILL.md (§1 CPP, §2 INSS 11%, §3 controvérsia Simples, §4 efeito-salto, §5 engenharia, §6 escrituração, §7 transição 2025-2028)
   - Incidências de rescisão (CLT 144 — férias indenizadas isentas)
   - Guias da folha (vencimentos GPS dia 20, FGTS dia 7, DARF 0561)
@@ -182,10 +221,13 @@ dict vazio (não interfere).
     tags inferidas do path, body preservado, best-effort em CNPJ inválido — 11 testes
   - **IRPF Dossiê + Validador** (Round L): 12 seções, 17 regras de consistência,
     regras_excluidas funciona, payload mínimo aceito — 6 testes
+  - **Backup/restore** (Round N): export schema_version+timestamp+interacoes,
+    import merge (no-op em ids existentes), import replace, schema incompatível
+    rejeitado, feedback preservado no roundtrip — 7 testes
   - Edge cases: validação Pydantic, propagação de erros do engine
 
 ```bash
-cd api && python3 -m pytest tests/ -v   # 137 passed in 0.42s
+cd api && python3 -m pytest tests/ -v   # 144 passed in 0.49s
 ```
 
 ## Arquitetura

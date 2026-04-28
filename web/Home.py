@@ -28,7 +28,7 @@ else:
 
 st.markdown("---")
 
-st.subheader("Calculadoras disponíveis (v0.9 — 35 ferramentas + parsers + histórico + auto-record + IRPF dossiê)")
+st.subheader("Calculadoras disponíveis (v1.0 — 35 ferramentas + parsers + histórico + auto-record + IRPF dossiê + dashboard)")
 st.markdown(
     """
     **Tributário PJ — Apuração**
@@ -87,7 +87,9 @@ st.markdown(
     |---|---|---|
     | Histórico SQLite por CNPJ + detector de padrões + sugestões proativas | `Historico Cliente` | Memória institucional do escritório, calendário fiscal automatizado |
     | Auto-record (v0.8) | _middleware transparente_ | Header `X-Cliente-CNPJ` em qualquer `/calc/*` grava automaticamente |
-    | **Auto-record sidebar (v0.9)** | sidebar de cada página | Preencha o CNPJ uma vez na sidebar — todas as calcs gravam no histórico |
+    | Auto-record sidebar (v0.9) | sidebar de cada página | Preencha o CNPJ uma vez — todas as calcs gravam no histórico |
+    | **Dashboard executivo (v1.0)** | `Dashboard` | KPIs, sazonalidade, top clientes/tags, picos fiscais, clusters |
+    | **Backup/restore (v1.0)** | `scripts/export-db.sh` / `import-db.sh` | Snapshot JSON do histórico, merge ou replace |
 
     **Q&A**
 
