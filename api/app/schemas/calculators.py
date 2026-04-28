@@ -402,6 +402,40 @@ class Tema779Request(BaseModel):
     insumos: list[InsumoTema779] = Field(..., min_length=1)
 
 
+class LucroPresumidoRequest(BaseModel):
+    atividade: Literal[
+        "comercio", "industria", "servicos", "transporte_cargas",
+        "transporte_passageiros", "combustiveis", "servicos_hospitalares",
+        "construcao_civil",
+    ] = Field(..., description="Chave da atividade na tabela do Lucro Presumido")
+    receita_trimestre: float = Field(..., gt=0, description="Receita bruta trimestral (R$)")
+    receitas_financeiras: float = Field(0.0, ge=0)
+    outras_receitas: float = Field(0.0, ge=0)
+
+
+PeriodoLR = Literal["trimestral", "mensal"]
+
+
+class LucroRealRequest(BaseModel):
+    lucro_contabil: float = Field(..., description="Pode ser negativo (prejuízo contábil)")
+    adicoes: float = Field(0.0, ge=0, description="Total de adições ao LALUR")
+    exclusoes: float = Field(0.0, ge=0, description="Total de exclusões do LALUR")
+    prejuizo_fiscal_acumulado: float = Field(
+        0.0, ge=0,
+        description="Saldo de prejuízo fiscal de períodos anteriores (compensação limitada a 30%)",
+    )
+    base_negativa_csll_acumulada: float = Field(0.0, ge=0)
+    receita_bruta: float = Field(0.0, ge=0, description="Para PIS/COFINS não-cumulativo")
+    receitas_financeiras: float = Field(0.0, ge=0)
+    outras_receitas: float = Field(0.0, ge=0)
+    creditos_pis: float = Field(0.0, ge=0)
+    creditos_cofins: float = Field(0.0, ge=0)
+    periodo: PeriodoLR = "trimestral"
+    csll_adicoes: Optional[float] = Field(None, ge=0,
+        description="Adições específicas CSLL (default = adicoes do IRPJ)")
+    csll_exclusoes: Optional[float] = Field(None, ge=0)
+
+
 class PerDcompMinutaRequest(BaseModel):
     """Gera memória de cálculo PER/DCOMP a partir do template RRT."""
     cliente_razao_social: str = Field(..., min_length=2)

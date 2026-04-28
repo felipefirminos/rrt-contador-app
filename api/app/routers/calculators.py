@@ -17,6 +17,8 @@ from app.schemas.calculators import (
     ICMSSTRequest,
     IRPFRequest,
     ISSRequest,
+    LucroPresumidoRequest,
+    LucroRealRequest,
     MEIResumoRequest,
     MunicipioBuscaRequest,
     PerDcompMinutaRequest,
@@ -150,6 +152,24 @@ def darf_buscar(req: DarfBuscaRequest) -> dict:
 @router.post("/darf/regime")
 def darf_regime(req: DarfRegimeRequest) -> dict:
     return engine.darf_listar_regime(req.regime)
+
+
+@router.post("/lucro-presumido")
+def lucro_presumido(req: LucroPresumidoRequest) -> dict:
+    """Lucro Presumido — apuração trimestral (IRPJ + CSLL + PIS + COFINS)."""
+    result = engine.calc_lucro_presumido(**req.model_dump())
+    if "erro" in result:
+        raise HTTPException(status_code=422, detail=result["erro"])
+    return result
+
+
+@router.post("/lucro-real")
+def lucro_real(req: LucroRealRequest) -> dict:
+    """Lucro Real — LALUR + compensação de prejuízo (30%) + PIS/COFINS não-cumulativo."""
+    result = engine.calc_lucro_real(**req.model_dump())
+    if "erro" in result:
+        raise HTTPException(status_code=422, detail=result["erro"])
+    return result
 
 
 @router.post("/icms/difal")

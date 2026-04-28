@@ -136,6 +136,14 @@ def gerar_minuta_perdcomp(**kwargs) -> dict:
     return _post("/calc/recuperacao/perdcomp-minuta", kwargs)
 
 
+def calc_lucro_presumido(**kwargs) -> dict:
+    return _post("/calc/lucro-presumido", kwargs)
+
+
+def calc_lucro_real(**kwargs) -> dict:
+    return _post("/calc/lucro-real", kwargs)
+
+
 def calc_folha_batch(empregados: list[dict[str, Any]], regime: str = "presumido_real",
                      competencia: str | None = None, rat_pct: float = 2.0,
                      fap: float = 1.0) -> dict:

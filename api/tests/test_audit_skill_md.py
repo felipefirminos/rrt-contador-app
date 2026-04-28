@@ -205,6 +205,97 @@ class TestIRPFIntegrado:
         assert "ganhos_capital" in r.json()
 
 
+# Lucro Presumido — Lei 9.249/95 + Lei 9.718/98
+class TestLucroPresumido:
+    def test_servicos_500k_carga_correta(self, client):
+        # Serviços: 32% presunção IRPJ → 500K × 32% = 160K
+        # IRPJ 15% × 160K = 24K; adicional 10% × (160K - 60K) = 10K → IRPJ total 34K
+        r = client.post("/calc/lucro-presumido",
+                        json={"atividade": "servicos", "receita_trimestre": 500000})
+        d = r.json()
+        assert d["irpj_total"] == 34000.0
+        assert d["csll"] == 14400.0  # 32% × 500K = 160K × 9% = 14400
+        # PIS 0,65% × 500K = 3250; COFINS 3% × 500K = 15000
+        assert d["pis"] == 3250.0
+        assert d["cofins"] == 15000.0
+
+    def test_adicional_irpj_10pct_acima_60k(self, client):
+        r = client.post("/calc/lucro-presumido",
+                        json={"atividade": "servicos", "receita_trimestre": 2000000})
+        d = r.json()
+        # base presunção 32% × 2M = 640K. IRPJ 15% × 640K = 96K
+        # adicional 10% × (640K - 60K) = 58K
+        assert d["irpj_15pct"] == 96000.0
+        assert d["adicional_irpj"] == 58000.0
+        assert d["irpj_total"] == 154000.0
+
+    def test_atividade_invalida_422(self, client):
+        r = client.post("/calc/lucro-presumido",
+                        json={"atividade": "invalido", "receita_trimestre": 100000})
+        assert r.status_code == 422
+
+    def test_irpj_csll_parcelavel_3x(self, client):
+        r = client.post("/calc/lucro-presumido",
+                        json={"atividade": "servicos", "receita_trimestre": 500000})
+        d = r.json()
+        # IRPJ 34K + CSLL 14.4K = 48.4K → parcelável (≥ R$2K)
+        assert d["pode_parcelar_3x"] is True
+        # quota mensal = 48400 / 3 ≈ 16133.33
+        assert abs(d["quota_mensal_irpj_csll"] - 16133.33) < 0.10
+
+
+# Lucro Real — LALUR + compensação 30% prejuízo
+class TestLucroReal:
+    def test_lucro_simples_sem_adicoes(self, client):
+        """Lucro 300K trimestral: IRPJ 15% × 300K = 45K + adicional 10% × 240K = 24K → 69K."""
+        r = client.post("/calc/lucro-real", json={
+            "lucro_contabil": 300000, "receita_bruta": 2000000,
+        })
+        d = r.json()
+        assert d["lucro_ajustado_irpj"] == 300000.0
+        assert d["irpj_15pct"] == 45000.0
+        assert d["adicional_irpj"] == 24000.0  # 10% × (300K - 60K)
+        assert d["irpj_total"] == 69000.0
+        assert d["csll"] == 27000.0  # 9% × 300K
+
+    def test_prejuizo_zera_irpj_acumula(self, client):
+        """Prejuízo contábil → sem IRPJ, novo saldo de prejuízo fiscal."""
+        r = client.post("/calc/lucro-real", json={
+            "lucro_contabil": -50000, "receita_bruta": 500000,
+        })
+        d = r.json()
+        assert d["irpj_total"] == 0
+        assert d["prejuizo_periodo_irpj"] == 50000.0
+        assert d["novo_saldo_prejuizo_fiscal"] == 50000.0
+
+    def test_compensacao_prejuizo_limitada_30pct(self, client):
+        """Lei 8.981/95: compensação de prejuízo fiscal ≤ 30% do lucro ajustado."""
+        r = client.post("/calc/lucro-real", json={
+            "lucro_contabil": 100000, "prejuizo_fiscal_acumulado": 200000,
+            "receita_bruta": 1000000,
+        })
+        d = r.json()
+        # Limite: 30% × 100K = 30K (mesmo havendo R$200K acumulado)
+        assert d["compensacao_prejuizo_fiscal"] == 30000.0
+        assert d["lucro_real_irpj"] == 70000.0  # 100K - 30K
+        # Saldo restante: 200K - 30K = 170K
+        assert d["novo_saldo_prejuizo_fiscal"] == 170000.0
+
+    def test_pis_cofins_nao_cumulativo_com_creditos(self, client):
+        """PIS 1,65% + COFINS 7,6% sobre receita, com créditos abatendo."""
+        r = client.post("/calc/lucro-real", json={
+            "lucro_contabil": 0, "receita_bruta": 1000000,
+            "creditos_pis": 5000, "creditos_cofins": 25000,
+        })
+        d = r.json()
+        # PIS bruto: 1M × 1.65% = 16500; - créditos 5000 → 11500
+        assert d["pis_bruto"] == 16500.0
+        assert d["pis_a_pagar"] == 11500.0
+        # COFINS bruto: 1M × 7.6% = 76000; - créditos 25000 → 51000
+        assert d["cofins_bruto"] == 76000.0
+        assert d["cofins_a_pagar"] == 51000.0
+
+
 # Parsers — DAS PDF + XML fiscais
 class TestParsers:
     def test_das_pdf_sem_arquivo_422(self, client):

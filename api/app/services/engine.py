@@ -51,6 +51,8 @@ from calc_icms_st import calcular_icms_st as _calc_icms_st  # noqa: E402
 from calc_iss import calcular_iss as _calc_iss  # noqa: E402
 from calc_iss import buscar_municipio as _buscar_municipio  # noqa: E402
 from calc_iss import consultar_municipio as _consultar_municipio  # noqa: E402
+from calc_presumido import calcular_presumido as _calc_presumido  # noqa: E402
+from calc_lucro_real import calcular_lucro_real as _calc_lucro_real  # noqa: E402
 
 # Recuperação tributária — só importa se a pasta existe
 try:
@@ -482,6 +484,49 @@ def buscar_municipio_iss(texto: str) -> dict[str, Any]:
             {"municipio": m[0], "score": m[1]} for m in matches[:10]
         ],
     }
+
+
+def calc_lucro_presumido(
+    atividade: str,
+    receita_trimestre: float,
+    receitas_financeiras: float = 0.0,
+    outras_receitas: float = 0.0,
+) -> dict[str, Any]:
+    return _calc_presumido(
+        atividade=atividade,
+        receita_trimestre=receita_trimestre,
+        receitas_financeiras=receitas_financeiras,
+        outras_receitas=outras_receitas,
+    )
+
+
+def calc_lucro_real(
+    lucro_contabil: float,
+    adicoes: float = 0.0,
+    exclusoes: float = 0.0,
+    prejuizo_fiscal_acumulado: float = 0.0,
+    base_negativa_csll_acumulada: float = 0.0,
+    receita_bruta: float = 0.0,
+    receitas_financeiras: float = 0.0,
+    outras_receitas: float = 0.0,
+    creditos_pis: float = 0.0,
+    creditos_cofins: float = 0.0,
+    periodo: str = "trimestral",
+    csll_adicoes: float | None = None,
+    csll_exclusoes: float | None = None,
+) -> dict[str, Any]:
+    return _calc_lucro_real(
+        lucro_contabil=lucro_contabil,
+        adicoes=adicoes, exclusoes=exclusoes,
+        prejuizo_fiscal_acumulado=prejuizo_fiscal_acumulado,
+        base_negativa_csll_acumulada=base_negativa_csll_acumulada,
+        receita_bruta=receita_bruta,
+        receitas_financeiras=receitas_financeiras,
+        outras_receitas=outras_receitas,
+        creditos_pis=creditos_pis, creditos_cofins=creditos_cofins,
+        periodo=periodo,
+        csll_adicoes=csll_adicoes, csll_exclusoes=csll_exclusoes,
+    )
 
 
 def calc_tema_69(
@@ -1017,6 +1062,60 @@ CALCULATOR_TOOLS = [
         },
     },
     {
+        "name": "calc_lucro_presumido",
+        "description": (
+            "Calcula IRPJ + CSLL + PIS + COFINS no Lucro Presumido (Lei 9.249/95 + "
+            "Lei 9.718/98). Período TRIMESTRAL. Presunção varia por atividade (8% comércio/"
+            "indústria, 32% serviços, 16% transporte cargas, etc.). IRPJ 15% sobre presunção "
+            "+ adicional 10% sobre o que excede R$ 60K/trimestre. CSLL 9%. PIS 0,65% + "
+            "COFINS 3% (cumulativo, sem créditos). Receitas financeiras e outras entram "
+            "100% na base. IRPJ+CSLL parceláveis em até 3x se ≥ R$2.000."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "atividade": {"type": "string",
+                    "enum": ["comercio", "industria", "servicos", "transporte_cargas",
+                             "transporte_passageiros", "combustiveis",
+                             "servicos_hospitalares", "construcao_civil"]},
+                "receita_trimestre": {"type": "number"},
+                "receitas_financeiras": {"type": "number", "default": 0},
+                "outras_receitas": {"type": "number", "default": 0},
+            },
+            "required": ["atividade", "receita_trimestre"],
+        },
+    },
+    {
+        "name": "calc_lucro_real",
+        "description": (
+            "Apuração completa Lucro Real via LALUR: lucro contábil + adições - exclusões "
+            "= lucro ajustado. Compensa prejuízo fiscal anterior limitado a 30% do lucro "
+            "ajustado. IRPJ 15% + adicional 10% acima R$60K/trim ou R$20K/mês. CSLL 9% "
+            "com base independente. PIS/COFINS NÃO-CUMULATIVO (1,65% + 7,6%) com créditos. "
+            "Receitas financeiras: PIS 0,65% + COFINS 4% (Decreto 8.426/2015). Retorna "
+            "saldos atualizados de prejuízo fiscal e base negativa CSLL para próximo período."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "lucro_contabil": {"type": "number", "description": "Pode ser negativo"},
+                "adicoes": {"type": "number", "default": 0},
+                "exclusoes": {"type": "number", "default": 0},
+                "prejuizo_fiscal_acumulado": {"type": "number", "default": 0},
+                "base_negativa_csll_acumulada": {"type": "number", "default": 0},
+                "receita_bruta": {"type": "number", "default": 0},
+                "receitas_financeiras": {"type": "number", "default": 0},
+                "outras_receitas": {"type": "number", "default": 0},
+                "creditos_pis": {"type": "number", "default": 0},
+                "creditos_cofins": {"type": "number", "default": 0},
+                "periodo": {"type": "string", "enum": ["trimestral", "mensal"]},
+                "csll_adicoes": {"type": "number"},
+                "csll_exclusoes": {"type": "number"},
+            },
+            "required": ["lucro_contabil"],
+        },
+    },
+    {
         "name": "calc_difal",
         "description": (
             "Calcula DIFAL (Diferencial de Alíquota ICMS) — EC 87/2015, LC 190/2022. "
@@ -1308,6 +1407,8 @@ TOOL_DISPATCH = {
     "calc_icms_st": calc_icms_st,
     "calc_iss": calc_iss,
     "buscar_municipio_iss": buscar_municipio_iss,
+    "calc_lucro_presumido": calc_lucro_presumido,
+    "calc_lucro_real": calc_lucro_real,
     "calc_distribuicao_lucros": calc_distribuicao_lucros,
     "calc_irpf_integrado": calc_irpf_integrado,
     "calc_cbs_ibs": calc_cbs_ibs,
