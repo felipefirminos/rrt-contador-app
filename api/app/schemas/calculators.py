@@ -402,6 +402,63 @@ class Tema779Request(BaseModel):
     insumos: list[InsumoTema779] = Field(..., min_length=1)
 
 
+# ─── Ganho de capital (4 variantes) + Carnê-leão isolado ─────────
+
+
+class GcapImovelRequest(BaseModel):
+    valor_venda: float = Field(..., gt=0)
+    custo_aquisicao: float = Field(..., ge=0)
+    data_aquisicao: str = Field(..., description="YYYY-MM-DD")
+    benfeitorias: float = Field(0.0, ge=0)
+    corretagem: float = Field(0.0, ge=0)
+    unico_imovel: bool = Field(
+        False, description="Isenção Lei 11.196/2005 Art. 40 §2°: único + venda ≤ R$440K",
+    )
+    valor_ate_440k: bool = Field(False, description="Reinvestimento em residência (180 dias)")
+    data_venda: Optional[str] = Field(None, description="YYYY-MM-DD (default: hoje)")
+
+
+TipoVeiculo = Literal["particular", "comercial", "dependente"]
+
+
+class GcapVeiculoRequest(BaseModel):
+    valor_venda: float = Field(..., gt=0)
+    custo_aquisicao: float = Field(..., ge=0)
+    tipo_veiculo: TipoVeiculo = "particular"
+
+
+class GcapCryptoRequest(BaseModel):
+    """Modo GUIDANCE — retorna checklist + alertas, NÃO calcula imposto."""
+    operacoes: Optional[list[dict]] = Field(
+        None,
+        description="Lista de operações {tipo, data, valor_brl, quantidade, exchange}",
+    )
+    saldo_31dez: Optional[float] = Field(None, ge=0, description="Saldo final ano (R$)")
+
+
+class GcapETFExteriorRequest(BaseModel):
+    pais_origem: str = Field(
+        "EUA",
+        description="País de origem do ETF (ex: EUA, IRLANDA, LUXEMBURGO)",
+    )
+    ativos: Optional[list[dict]] = Field(
+        None,
+        description="Lista opcional de {ticker, valor_brl, data_compra, data_venda, ganho}",
+    )
+
+
+MoedaCarneLeao = Literal["USD", "EUR", "GBP", "JPY", "CHF"]
+
+
+class CarneLeaoRequest(BaseModel):
+    renda_exterior_moeda: float = Field(..., gt=0, description="Valor em moeda estrangeira")
+    moeda_origem: MoedaCarneLeao
+    mes_referencia: str = Field(..., description="YYYY-MM")
+    dependentes_irrf: int = Field(0, ge=0)
+    deducoes_mes: float = Field(0.0, ge=0,
+        description="Pensão judicial, previdência (somente do mês)")
+
+
 RegimeCustoEmpregado = Literal["presumido_real", "simples_i_iii_v", "simples_iv"]
 
 

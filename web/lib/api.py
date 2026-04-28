@@ -152,6 +152,26 @@ def calc_retencoes_pj(**kwargs) -> dict:
     return _post("/calc/retencoes-pj", kwargs)
 
 
+def calc_gcap_imovel(**kwargs) -> dict:
+    return _post("/calc/gcap/imovel", kwargs)
+
+
+def calc_gcap_veiculo(**kwargs) -> dict:
+    return _post("/calc/gcap/veiculo", kwargs)
+
+
+def gcap_crypto_checklist(**kwargs) -> dict:
+    return _post("/calc/gcap/crypto", kwargs)
+
+
+def gcap_etf_checklist(**kwargs) -> dict:
+    return _post("/calc/gcap/etf-exterior", kwargs)
+
+
+def calc_carne_leao(**kwargs) -> dict:
+    return _post("/calc/carne-leao", kwargs)
+
+
 def calc_folha_batch(empregados: list[dict[str, Any]], regime: str = "presumido_real",
                      competencia: str | None = None, rat_pct: float = 2.0,
                      fap: float = 1.0) -> dict:

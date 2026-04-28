@@ -205,6 +205,85 @@ class TestIRPFIntegrado:
         assert "ganhos_capital" in r.json()
 
 
+# Ganho de capital — 4 variantes (imóvel, veículo, crypto, ETF) + carnê-leão
+class TestGcapImovel:
+    def test_ganho_padrao_15pct(self, client):
+        """Ganho R$200K (800K - 600K, 2018, não único): IRPF 15%."""
+        r = client.post("/calc/gcap/imovel", json={
+            "valor_venda": 800000, "custo_aquisicao": 600000,
+            "data_aquisicao": "2018-01-15",
+        })
+        d = r.json()
+        assert d["ganho_bruto"] == 200000
+        assert d["imposto_devido"] == 30000.0  # 15% × 200K
+        assert d["aliquota_efetiva"] == 15.0
+
+    def test_unico_imovel_440k_isento(self, client):
+        """Lei 11.196/2005 Art. 40 §2°: único imóvel residencial ≤ R$440K isento."""
+        r = client.post("/calc/gcap/imovel", json={
+            "valor_venda": 400000, "custo_aquisicao": 300000,
+            "data_aquisicao": "2020-01-01", "unico_imovel": True,
+        })
+        d = r.json()
+        assert d["imposto_devido"] == 0
+        assert any("440.000" in i for i in d["isencoes_aplicadas"])
+
+    def test_prejuizo_sem_tributacao(self, client):
+        r = client.post("/calc/gcap/imovel", json={
+            "valor_venda": 400000, "custo_aquisicao": 500000,
+            "data_aquisicao": "2020-01-01",
+        })
+        assert r.json()["imposto_devido"] == 0
+
+
+class TestGcapVeiculo:
+    def test_particular_isento(self, client):
+        r = client.post("/calc/gcap/veiculo", json={
+            "valor_venda": 70000, "custo_aquisicao": 60000, "tipo_veiculo": "particular",
+        })
+        assert r.json()["imposto_devido"] == 0
+
+    def test_comercial_tributavel_15pct(self, client):
+        r = client.post("/calc/gcap/veiculo", json={
+            "valor_venda": 70000, "custo_aquisicao": 60000, "tipo_veiculo": "comercial",
+        })
+        assert r.json()["imposto_devido"] == 1500.0
+
+    def test_dependente_emite_alerta(self, client):
+        r = client.post("/calc/gcap/veiculo", json={
+            "valor_venda": 70000, "custo_aquisicao": 60000, "tipo_veiculo": "dependente",
+        })
+        assert r.json().get("alerta") is not None
+
+
+class TestGcapCrypto:
+    def test_modo_guidance_retorna_checklist(self, client):
+        r = client.post("/calc/gcap/crypto", json={})
+        d = r.json()
+        assert d["modo"] == "GUIDANCE"
+        assert len(d["checklist"]) >= 10
+
+
+class TestGcapETFExterior:
+    def test_eua_modo_guidance(self, client):
+        r = client.post("/calc/gcap/etf-exterior", json={"pais_origem": "EUA"})
+        d = r.json()
+        assert d["modo"] == "GUIDANCE"
+
+
+class TestCarneLeao:
+    def test_usd_10k_jan_2025(self, client):
+        """USD 10K × PTAX 5,28 = R$52.800 → IRRF tabela 27,5%."""
+        r = client.post("/calc/carne-leao", json={
+            "renda_exterior_moeda": 10000, "moeda_origem": "USD",
+            "mes_referencia": "2025-01",
+        })
+        d = r.json()
+        assert d["renda_brl"] == 52800.0
+        assert d["faixa_aplicada"] == "27,5%"
+        assert d["irrf_devido"] > 13000  # ~R$13.611
+
+
 # Custo CLT — Lei 8.212/91 + LC 123/2006 (regimes diferenciados)
 class TestCustoEmpregado:
     def test_presumido_real_encargos_plenos(self, client):

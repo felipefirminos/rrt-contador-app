@@ -55,6 +55,11 @@ from calc_presumido import calcular_presumido as _calc_presumido  # noqa: E402
 from calc_lucro_real import calcular_lucro_real as _calc_lucro_real  # noqa: E402
 from calc_custo_empregado import calcular_custo_empregado as _calc_custo_emp  # noqa: E402
 from calc_retencoes_pj import calcular_retencoes_pj as _calc_retencoes  # noqa: E402
+from calc_gcap_imovel import calcular_gcap_imovel as _calc_gcap_imovel  # noqa: E402
+from calc_gcap_veiculo import calcular_gcap_veiculo as _calc_gcap_veiculo  # noqa: E402
+from calc_gcap_crypto import gerar_checklist_crypto as _gcap_crypto_checklist  # noqa: E402
+from calc_gcap_etf_exterior import gerar_checklist_etf_exterior as _gcap_etf_checklist  # noqa: E402
+from calc_carne_leao import calcular_carne_leao as _calc_carne_leao  # noqa: E402
 
 # Recuperação tributária — só importa se a pasta existe
 try:
@@ -486,6 +491,65 @@ def buscar_municipio_iss(texto: str) -> dict[str, Any]:
             {"municipio": m[0], "score": m[1]} for m in matches[:10]
         ],
     }
+
+
+def calc_gcap_imovel(
+    valor_venda: float,
+    custo_aquisicao: float,
+    data_aquisicao: str,
+    benfeitorias: float = 0.0,
+    corretagem: float = 0.0,
+    unico_imovel: bool = False,
+    valor_ate_440k: bool = False,
+    data_venda: str | None = None,
+) -> dict[str, Any]:
+    return _calc_gcap_imovel(
+        valor_venda=valor_venda, custo_aquisicao=custo_aquisicao,
+        data_aquisicao=data_aquisicao, benfeitorias=benfeitorias,
+        corretagem=corretagem, unico_imovel=unico_imovel,
+        valor_ate_440k=valor_ate_440k, data_venda=data_venda,
+    )
+
+
+def calc_gcap_veiculo(
+    valor_venda: float,
+    custo_aquisicao: float,
+    tipo_veiculo: str = "particular",
+) -> dict[str, Any]:
+    return _calc_gcap_veiculo(
+        valor_venda=valor_venda, custo_aquisicao=custo_aquisicao,
+        tipo_veiculo=tipo_veiculo,
+    )
+
+
+def gcap_crypto_checklist(
+    operacoes: list[dict] | None = None,
+    saldo_31dez: float | None = None,
+) -> dict[str, Any]:
+    return _gcap_crypto_checklist(operacoes=operacoes, saldo_31dez=saldo_31dez)
+
+
+def gcap_etf_exterior_checklist(
+    pais_origem: str = "EUA",
+    ativos: list[dict] | None = None,
+) -> dict[str, Any]:
+    return _gcap_etf_checklist(ativos=ativos, pais_origem=pais_origem)
+
+
+def calc_carne_leao(
+    renda_exterior_moeda: float,
+    moeda_origem: str,
+    mes_referencia: str,
+    dependentes_irrf: int = 0,
+    deducoes_mes: float = 0.0,
+) -> dict[str, Any]:
+    return _calc_carne_leao(
+        renda_exterior_moeda=renda_exterior_moeda,
+        moeda_origem=moeda_origem,
+        mes_referencia=mes_referencia,
+        dependentes_irrf=dependentes_irrf,
+        deducoes_mes=deducoes_mes,
+    )
 
 
 def calc_custo_empregado(
@@ -1099,6 +1163,109 @@ CALCULATOR_TOOLS = [
         },
     },
     {
+        "name": "calc_gcap_imovel",
+        "description": (
+            "Calcula ganho de capital em alienação de imóvel PF (Lei 11.196/2005, Lei "
+            "7.713/88, IN RFB 599/2005). Aplica fator redutor por tempo de posse, "
+            "alíquotas progressivas (15%/17,5%/20%/22,5% conforme faixas), e ISENÇÕES: "
+            "(1) único imóvel residencial com venda ≤ R$440K; (2) reinvestimento em "
+            "residência em 180 dias; (3) imóvel adquirido pré-1969. Prejuízo NÃO "
+            "compensa ganhos futuros para PF (vedação Art. 11 IN RFB 599/2005)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "valor_venda": {"type": "number"},
+                "custo_aquisicao": {"type": "number"},
+                "data_aquisicao": {"type": "string", "description": "YYYY-MM-DD"},
+                "benfeitorias": {"type": "number", "default": 0},
+                "corretagem": {"type": "number", "default": 0},
+                "unico_imovel": {"type": "boolean", "default": False},
+                "valor_ate_440k": {"type": "boolean", "default": False},
+                "data_venda": {"type": "string", "description": "default: hoje"},
+            },
+            "required": ["valor_venda", "custo_aquisicao", "data_aquisicao"],
+        },
+    },
+    {
+        "name": "calc_gcap_veiculo",
+        "description": (
+            "Calcula ganho de capital em veículo PF (RIR/2018 + IN RFB 599/2005). "
+            "Veículo PARTICULAR de uso pessoal: ISENTO de tributação (mas reportar "
+            "na IRPF). Veículo COMERCIAL (revenda/aluguel): tributável com alíquotas "
+            "progressivas. Veículo de DEPENDENTE: alerta especial — exige parecer "
+            "jurídico para definir tributação no titular ou dependente."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "valor_venda": {"type": "number"},
+                "custo_aquisicao": {"type": "number"},
+                "tipo_veiculo": {"type": "string",
+                    "enum": ["particular", "comercial", "dependente"]},
+            },
+            "required": ["valor_venda", "custo_aquisicao"],
+        },
+    },
+    {
+        "name": "gcap_crypto_checklist",
+        "description": (
+            "Modo GUIDANCE — gera checklist de 12+ itens + alertas para tributação "
+            "de criptoativos PF (IN RFB 1.888/2019, Lei 14.754/2023). NÃO calcula "
+            "imposto: a complexidade do FIFO + isenção mensal R$35K + obrigação de "
+            "declarar saldo >R$5K em 31/12 exige revisão manual do contador. "
+            "Alíquotas: 15-22,5% sobre ganho mensal acima da isenção. "
+            "Detecta padrões de risco (>30 trades/ano = escrutínio RFB)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "operacoes": {"type": "array", "items": {"type": "object"},
+                    "description": "Lista {tipo, data, valor_brl, quantidade, exchange}"},
+                "saldo_31dez": {"type": "number"},
+            },
+        },
+    },
+    {
+        "name": "gcap_etf_exterior_checklist",
+        "description": (
+            "Modo GUIDANCE — checklist + tratado de bitributação para ETFs no exterior "
+            "(Lei 14.754/2023 — come-cotas anual 15%, regime offshore opcional). Verifica "
+            "tratados Brasil-país de origem (EUA, IRLANDA, LUXEMBURGO, etc.) "
+            "para evitar dupla tributação. Não calcula valores — exige confirmação manual."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "pais_origem": {"type": "string", "description": "ex: EUA, IRLANDA"},
+                "ativos": {"type": "array", "items": {"type": "object"},
+                           "description": "Opcional: lista de operações"},
+            },
+        },
+    },
+    {
+        "name": "calc_carne_leao",
+        "description": (
+            "Carnê-leão isolado para um mês: renda no exterior em moeda → BRL via "
+            "PTAX de fechamento → IRRF mensal devido (tabela Lei 15.270/2025). "
+            "Suporta dependentes (R$189,59/mês cada) e deduções (pensão judicial, "
+            "previdência). Sinaliza desvio de PTAX se PTAX usado >10% diferente "
+            "do esperado. Para PF residente que recebe do exterior."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "renda_exterior_moeda": {"type": "number"},
+                "moeda_origem": {"type": "string",
+                    "enum": ["USD", "EUR", "GBP", "JPY", "CHF"]},
+                "mes_referencia": {"type": "string", "description": "YYYY-MM"},
+                "dependentes_irrf": {"type": "integer", "default": 0},
+                "deducoes_mes": {"type": "number", "default": 0},
+            },
+            "required": ["renda_exterior_moeda", "moeda_origem", "mes_referencia"],
+        },
+    },
+    {
         "name": "calc_custo_empregado",
         "description": (
             "Calcula custo TOTAL mensal/anual de empregado CLT (Lei 8.212/91 + LC "
@@ -1504,6 +1671,11 @@ TOOL_DISPATCH = {
     "calc_lucro_real": calc_lucro_real,
     "calc_custo_empregado": calc_custo_empregado,
     "calc_retencoes_pj": calc_retencoes_pj,
+    "calc_gcap_imovel": calc_gcap_imovel,
+    "calc_gcap_veiculo": calc_gcap_veiculo,
+    "gcap_crypto_checklist": gcap_crypto_checklist,
+    "gcap_etf_exterior_checklist": gcap_etf_exterior_checklist,
+    "calc_carne_leao": calc_carne_leao,
     "calc_distribuicao_lucros": calc_distribuicao_lucros,
     "calc_irpf_integrado": calc_irpf_integrado,
     "calc_cbs_ibs": calc_cbs_ibs,

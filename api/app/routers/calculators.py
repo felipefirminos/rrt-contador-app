@@ -17,7 +17,12 @@ from app.schemas.calculators import (
     ICMSSTRequest,
     IRPFRequest,
     ISSRequest,
+    CarneLeaoRequest,
     CustoEmpregadoRequest,
+    GcapCryptoRequest,
+    GcapETFExteriorRequest,
+    GcapImovelRequest,
+    GcapVeiculoRequest,
     LucroPresumidoRequest,
     LucroRealRequest,
     RetencoesPJRequest,
@@ -154,6 +159,36 @@ def darf_buscar(req: DarfBuscaRequest) -> dict:
 @router.post("/darf/regime")
 def darf_regime(req: DarfRegimeRequest) -> dict:
     return engine.darf_listar_regime(req.regime)
+
+
+@router.post("/gcap/imovel")
+def gcap_imovel(req: GcapImovelRequest) -> dict:
+    """Ganho de capital — imóvel PF (com isenções Lei 11.196/2005)."""
+    return engine.calc_gcap_imovel(**req.model_dump())
+
+
+@router.post("/gcap/veiculo")
+def gcap_veiculo(req: GcapVeiculoRequest) -> dict:
+    """Ganho de capital — veículo PF (particular isento, comercial tributável)."""
+    return engine.calc_gcap_veiculo(**req.model_dump())
+
+
+@router.post("/gcap/crypto")
+def gcap_crypto(req: GcapCryptoRequest) -> dict:
+    """Cripto — modo GUIDANCE (checklist, não calcula imposto)."""
+    return engine.gcap_crypto_checklist(**req.model_dump())
+
+
+@router.post("/gcap/etf-exterior")
+def gcap_etf_exterior(req: GcapETFExteriorRequest) -> dict:
+    """ETF no exterior — modo GUIDANCE (checklist + tratado de bitributação)."""
+    return engine.gcap_etf_exterior_checklist(**req.model_dump())
+
+
+@router.post("/carne-leao")
+def carne_leao(req: CarneLeaoRequest) -> dict:
+    """Carnê-leão isolado — renda exterior em moeda → BRL via PTAX → IRRF mensal."""
+    return engine.calc_carne_leao(**req.model_dump())
 
 
 @router.post("/custo-empregado")

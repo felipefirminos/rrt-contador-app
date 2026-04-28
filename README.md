@@ -9,7 +9,7 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
   system prompt e as calculadoras expostas como **tools** — o assistente
   chama as funções reais ao invés de improvisar números
 
-## Calculadoras expostas (v0.5 — 22 ferramentas + parsers)
+## Calculadoras expostas (v0.6 — 33 ferramentas + parsers)
 
 ### Tributário PJ
 | Endpoint | Validação empírica |
@@ -66,13 +66,34 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
 | `POST /parser/das-pdf-batch` | Até 50 guias (carteira inteira no fechamento mensal) |
 | `POST /parser/xml-fiscal` | NF-e / NFC-e / NFS-e — detecta tipo, extrai estrutura completa |
 
+### Apuração detalhada (Round G)
+| Endpoint | Validação empírica |
+|---|---|
+| `POST /calc/lucro-presumido` | Serviços R$500K/trim → IRPJ R$34K, CSLL R$14,4K, total R$66,65K |
+| `POST /calc/lucro-real` | Lucro R$300K → IRPJ R$69K + CSLL R$27K; compensação prejuízo limitada a 30% |
+
+### Operacional dia-a-dia (Round H)
+| Endpoint | Validação empírica |
+|---|---|
+| `POST /calc/custo-empregado` | R$3K Presumido → custo mensal R$4.866 (62,21% sobre salário); Simples I/III/V → R$3.870 |
+| `POST /calc/retencoes-pj` | R$10K profissional → IRRF R$150 + CSRF R$465; Simples zero (exceto publicidade) |
+
+### Pessoa Física — gcap + carnê-leão (Round I)
+| Endpoint | Validação empírica |
+|---|---|
+| `POST /calc/gcap/imovel` | Ganho R$200K → imposto R$30K (15%); único <440K → isento |
+| `POST /calc/gcap/veiculo` | Particular → isento; comercial R$10K ganho → R$1.500 (15%) |
+| `POST /calc/gcap/crypto` | Modo GUIDANCE — checklist 12 itens + alertas |
+| `POST /calc/gcap/etf-exterior` | Modo GUIDANCE — tratado de bitributação |
+| `POST /calc/carne-leao` | USD 10K × PTAX → R$52.800 → IRRF R$13.611 (27,5%) |
+
 ### LLM
-| `POST /chat` + `POST /chat/stream` | 22 ferramentas como Anthropic tools |
+| `POST /chat` + `POST /chat/stream` | 33 ferramentas como Anthropic tools |
 
 ## Qualidade
 
 - **57 scripts upstream passam seus testes próprios** (~1835 asserções) na cópia em `engine/`
-- **80 testes pytest** na API (`api/tests/`) cobrindo:
+- **105 testes pytest** na API (`api/tests/`) cobrindo:
   - Auditoria contra os 7 erros recorrentes do SKILL.md (§1 CPP, §2 INSS 11%, §3 controvérsia Simples, §4 efeito-salto, §5 engenharia, §6 escrituração, §7 transição 2025-2028)
   - Incidências de rescisão (CLT 144 — férias indenizadas isentas)
   - Guias da folha (vencimentos GPS dia 20, FGTS dia 7, DARF 0561)
@@ -83,11 +104,17 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
   - Recuperação tributária: Tema 69 (modulação STF, alíquotas LR/LP), prescrição
     quinquenal, Tema 779 (4 forças por categoria), PER/DCOMP (placeholders)
   - DIFAL (com frete), ICMS-ST (cálculo + restituição), ISS (SP/Simples/não-mapeado)
+  - Lucro Presumido (8 atividades, adicional, parcelamento 3x)
+  - Lucro Real (LALUR, compensação 30%, PIS/COFINS não-cumulativo)
+  - Custo CLT por regime (Simples isento, Anexo IV intermediário, Presumido pleno)
+  - Retenções PJ→PJ (IRRF, CSRF, INSS cessão MO, exceção publicidade Simples)
+  - Gcap imóvel (isenção 440K), veículo (particular vs comercial), crypto/ETF (GUIDANCE)
+  - Carnê-leão (PTAX, dependentes, faixas IRRF)
   - Parsers: validação multipart, encoding, extensão, payload vazio
   - Edge cases: validação Pydantic, propagação de erros do engine
 
 ```bash
-cd api && python3 -m pytest tests/ -v   # 80 passed in 0.20s
+cd api && python3 -m pytest tests/ -v   # 105 passed in 0.22s
 ```
 
 ## Arquitetura

@@ -28,7 +28,7 @@ else:
 
 st.markdown("---")
 
-st.subheader("Calculadoras disponíveis (v0.5 — 22 ferramentas + parsers)")
+st.subheader("Calculadoras disponíveis (v0.6 — 33 ferramentas + parsers)")
 st.markdown(
     """
     **Tributário PJ — Apuração**
@@ -36,12 +36,16 @@ st.markdown(
     | Calculadora | Página | Base legal |
     |---|---|---|
     | DAS Simples Nacional + sugeridor de Anexo | `Simples Nacional` | LC 123/2006, Res. CGSN 140/2018 |
+    | **Lucro Presumido (apuração trimestral)** | `Lucro Presumido` | Lei 9.249/95 + Lei 9.718/98 |
+    | **Lucro Real (LALUR + créditos PIS/COFINS)** | `Lucro Real` | Lei 9.430/96 + RIR/2018 + Lei 8.981/95 |
     | DIFAL ICMS | `DIFAL ICMS` | EC 87/2015 + LC 190/2022 |
     | ICMS-ST (Substituição Tributária) | `ICMS ST` | Convênio ICMS por produto |
     | ISS | `ISS` | LC 116/2003 + base 5K+ municípios |
     | Pró-labore | `Pro labore` | IN RFB 971/2009, Lei 15.270/2025 |
     | Distribuição de Lucros | `Distribuicao Lucros` | Lei 15.270/2025 |
     | Comparativo de Regimes | `Comparativo Regimes` | LC 123 + RIR/2018 |
+    | **Custo Total CLT** | `Custo CLT` | Lei 8.212/91 + LC 123/2006 |
+    | **Retenções PJ→PJ** | `Retencoes PJ` | IN RFB 1.234/2012 + Art. 30 Lei 10.833 |
     | MEI | `MEI` | LC 123/2006 + LC 188/2021 |
     | CBS / IBS Reforma | `CBS IBS` | EC 132/2023 + LC 214/2025 |
     | Códigos DARF/GPS/DAS | `DARF Codes` | RFB |
@@ -68,6 +72,7 @@ st.markdown(
     | Calculadora | Página | Base legal |
     |---|---|---|
     | IRPF — Posição Anual | `IRPF` | Lei 9.250/95 + RIR/2018 |
+    | **Ganho de Capital (4 tipos) + Carnê-leão** | `Gcap e Carne Leao` | Lei 11.196/2005 + Lei 14.754/2023 + IN RFB 1.585 |
 
     **Parsers (upload)**
 
@@ -79,7 +84,7 @@ st.markdown(
 
     | Página | Use |
     |---|---|
-    | `Chat` | O assistente cita base legal e chama as 22 calculadoras como tools |
+    | `Chat` | O assistente cita base legal e chama as 33 calculadoras como tools |
     """
 )
 
@@ -93,15 +98,12 @@ st.caption(
 
 st.markdown(
     """
-    - Lucro Presumido / Lucro Real (apuração detalhada com créditos por NF) — `calc_presumido.py` / `calc_lucro_real.py`
-    - Custo CLT comparativo (RAT/FAP, Terceiros, Sat/VR/VT) — `calc_custo_empregado.py`
-    - Retenções PJ→PJ (CSRF, INSS, IRRF) — `calc_retencoes_pj.py`
-    - Ganho de capital (imóvel, veículo, crypto, ETF exterior) — `calc_gcap_*.py`
-    - Carnê-leão isolado — `calc_carne_leao.py`
     - Validador de consistência IRPF + dossiê — `validar_consistencia_irpf.py`
     - Histórico de cálculos por cliente/CNPJ — `registro_interacoes.py` (SQLite)
     - Detector de padrões e sazonalidade — `detector_padroes.py`
     - Sugestões proativas (prazos, lembretes) — `sugestoes_proativas.py`
     - Cross-skill router + mapa de clientes — `cross_skill_router.py` / `mapa_clientes.py`
+    - Agendador Gestta (orquestração) — `agendador_gestta.py` / `orquestrador_gestta.py`
+    - Ponte WhatsApp + classificador — `ponte_whatsapp.py` / `classificar_mensagem.py`
     """
 )
