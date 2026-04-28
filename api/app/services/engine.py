@@ -26,6 +26,7 @@ from calc_simples import sugerir_anexo_engenharia as _sugerir_anexo  # noqa: E40
 from calc_prolabore import calcular_prolabore as _calc_prolabore  # noqa: E402
 from calc_comparativo_regimes import comparar_regimes as _comparar_regimes  # noqa: E402
 from calc_rescisao import calcular_rescisao as _calc_rescisao  # noqa: E402
+from calc_folha_batch import processar_folha_batch as _processar_folha_batch  # noqa: E402
 
 
 def calc_simples_das(
@@ -90,6 +91,18 @@ def calc_rescisao(
         saldo_fgts=saldo_fgts,
         num_dependentes=num_dependentes,
         media_adicionais=media_adicionais,
+    )
+
+
+def calc_folha_batch(
+    empregados: list[dict[str, Any]],
+    regime: str = "presumido_real",
+    competencia: str | None = None,
+) -> dict[str, Any]:
+    return _processar_folha_batch(
+        empregados=empregados,
+        regime=regime,
+        competencia=competencia,
     )
 
 
@@ -195,6 +208,51 @@ CALCULATOR_TOOLS = [
         },
     },
     {
+        "name": "calc_folha_batch",
+        "description": (
+            "Processa folha de pagamento de N empregados de uma vez (CLT + Lei 8.212 + 8.036). "
+            "Retorna resultado individual por empregado, totais consolidados (bruto, líquido, "
+            "INSS empregado/patronal, IRRF, FGTS, custo empresa) e guias prontas: "
+            "GPS (vence dia 20), FGTS Digital (vence dia 7), DARF 0561 (IRRF, vence dia 20). "
+            "Trata erros individualmente — um empregado com erro não interrompe o lote."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "empregados": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "nome": {"type": "string"},
+                            "salario_base": {"type": "number"},
+                            "he_normais": {"type": "number", "default": 0},
+                            "he_feriado": {"type": "number", "default": 0},
+                            "horas_noturnas": {"type": "number", "default": 0},
+                            "adicional_noturno_pct": {"type": "number", "default": 0},
+                            "insalubridade_pct": {"type": "number", "enum": [0, 10, 20, 40]},
+                            "periculosidade_pct": {"type": "number", "default": 0},
+                            "faltas_dias": {"type": "integer", "default": 0},
+                            "num_dependentes": {"type": "integer", "default": 0},
+                            "pensao_alimenticia": {"type": "number", "default": 0},
+                            "vt_base": {"type": "number", "default": 0},
+                            "outros_descontos": {"type": "number", "default": 0},
+                            "jornada_mensal": {"type": "integer", "default": 220},
+                        },
+                        "required": ["nome", "salario_base"],
+                    },
+                },
+                "regime": {
+                    "type": "string",
+                    "enum": ["presumido_real", "simples_i_iii_v", "simples_iv"],
+                    "default": "presumido_real",
+                },
+                "competencia": {"type": "string", "description": "ex: '04/2026'"},
+            },
+            "required": ["empregados"],
+        },
+    },
+    {
         "name": "calc_rescisao",
         "description": (
             "Calcula rescisão trabalhista (CLT Arts. 477-484-A, Lei 12.506/2011). "
@@ -237,4 +295,5 @@ TOOL_DISPATCH = {
     "calc_prolabore": calc_prolabore,
     "calc_comparativo": calc_comparativo,
     "calc_rescisao": calc_rescisao,
+    "calc_folha_batch": calc_folha_batch,
 }

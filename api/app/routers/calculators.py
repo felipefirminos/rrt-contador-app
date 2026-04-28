@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.schemas.calculators import (
     ComparativoRegimesRequest,
+    FolhaBatchRequest,
     ProlaboreRequest,
     RescisaoRequest,
     SimplesDASRequest,
@@ -48,6 +49,19 @@ def comparativo_regimes(req: ComparativoRegimesRequest) -> dict:
 @router.post("/rescisao")
 def rescisao(req: RescisaoRequest) -> dict:
     result = engine.calc_rescisao(**req.model_dump())
+    if "erro" in result:
+        raise HTTPException(status_code=422, detail=result["erro"])
+    return result
+
+
+@router.post("/folha-batch")
+def folha_batch(req: FolhaBatchRequest) -> dict:
+    payload = req.model_dump()
+    result = engine.calc_folha_batch(
+        empregados=payload["empregados"],
+        regime=payload["regime"],
+        competencia=payload.get("competencia"),
+    )
     if "erro" in result:
         raise HTTPException(status_code=422, detail=result["erro"])
     return result

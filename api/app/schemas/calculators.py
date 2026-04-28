@@ -75,3 +75,37 @@ class RescisaoRequest(BaseModel):
     saldo_fgts: float = Field(0.0, ge=0, description="Saldo FGTS para multa")
     num_dependentes: int = Field(0, ge=0)
     media_adicionais: float = Field(0.0, ge=0, description="Média HE/noturno/insalubridade")
+
+
+# ─── Folha em Lote ────────────────────────────────────────────────
+
+RegimeFolha = Literal["presumido_real", "simples_i_iii_v", "simples_iv"]
+
+
+class EmpregadoFolha(BaseModel):
+    nome: str
+    salario_base: float = Field(..., ge=0)
+    he_normais: float = Field(0.0, ge=0, description="Horas extras 50%")
+    he_feriado: float = Field(0.0, ge=0, description="Horas extras 100% (domingo/feriado)")
+    horas_noturnas: float = Field(0.0, ge=0)
+    adicional_noturno_pct: float = Field(0.0, ge=0, description="20% mínimo legal")
+    insalubridade_pct: Literal[0, 10, 20, 40] = Field(
+        0, description="CLT Art. 192: 10/20/40% sobre SM",
+    )
+    periculosidade_pct: float = Field(0.0, ge=0, le=30, description="30% sobre base (CLT 193)")
+    adicional_funcao: float = Field(0.0, ge=0)
+    comissoes: float = Field(0.0, ge=0)
+    faltas_dias: int = Field(0, ge=0, le=31)
+    num_dependentes: int = Field(0, ge=0)
+    pensao_alimenticia: float = Field(0.0, ge=0)
+    vt_base: float = Field(0.0, ge=0, description="Custo VT do mês (desconto 6% do salário)")
+    outros_descontos: float = Field(0.0, ge=0)
+    jornada_mensal: int = Field(220, gt=0, description="220h = 44h/sem; 180h = 36h/sem")
+
+
+class FolhaBatchRequest(BaseModel):
+    empregados: list[EmpregadoFolha] = Field(..., min_length=1)
+    regime: RegimeFolha = "presumido_real"
+    competencia: Optional[str] = Field(None, description="Ex: '04/2026' (informativo)")
+    rat_pct: float = Field(2.0, ge=0)
+    fap: float = Field(1.0, ge=0)

@@ -61,6 +61,15 @@ def calc_rescisao(**kwargs) -> dict:
     return _post("/calc/rescisao", kwargs)
 
 
+def calc_folha_batch(empregados: list[dict[str, Any]], regime: str = "presumido_real",
+                     competencia: str | None = None, rat_pct: float = 2.0,
+                     fap: float = 1.0) -> dict:
+    return _post("/calc/folha-batch", {
+        "empregados": empregados, "regime": regime, "competencia": competencia,
+        "rat_pct": rat_pct, "fap": fap,
+    })
+
+
 def chat(message: str, history: list[dict[str, str]]) -> dict:
     return _post("/chat", {"message": message, "history": history})
 
