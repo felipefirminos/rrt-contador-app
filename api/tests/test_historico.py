@@ -164,6 +164,87 @@ class TestPadroes:
         assert "clusters" in d
 
 
+class TestBackupRestore:
+    def test_export_retorna_estrutura_correta(self, client):
+        """export_to_dict gera schema_version + exported_at + interacoes[]."""
+        client.post("/historico/registrar",
+                    json={"cnpj": "11111111000111", "texto": "x", "tags": ["t1"]})
+        client.post("/historico/registrar",
+                    json={"cnpj": "22222222000222", "texto": "y", "tags": ["t2"]})
+
+        payload = db.export_to_dict()
+        assert payload["schema_version"] == 1
+        assert payload["total"] == 2
+        assert len(payload["interacoes"]) == 2
+        assert "exported_at" in payload
+
+    def test_import_merge_no_op_quando_ids_existem(self, client):
+        """INSERT OR IGNORE: re-importar mesma base não duplica."""
+        client.post("/historico/registrar",
+                    json={"cnpj": "11111111000111", "texto": "x"})
+        payload = db.export_to_dict()
+
+        result = db.import_from_dict(payload, replace=False)
+        assert result["importadas"] == 0
+        assert result["ignoradas"] == 1
+        assert result["total_apos_import"] == 1
+
+    def test_import_apos_reset_recria_todas(self, client):
+        client.post("/historico/registrar",
+                    json={"cnpj": "11111111000111", "texto": "a", "tags": ["x"]})
+        client.post("/historico/registrar",
+                    json={"cnpj": "22222222000222", "texto": "b"})
+        payload = db.export_to_dict()
+
+        db.reset_para_testes()
+        assert len(db.todas_interacoes()) == 0
+
+        result = db.import_from_dict(payload, replace=False)
+        assert result["importadas"] == 2
+        assert len(db.todas_interacoes()) == 2
+
+    def test_import_replace_substitui_tudo(self, client):
+        client.post("/historico/registrar",
+                    json={"cnpj": "11111111000111", "texto": "original"})
+        payload = db.export_to_dict()
+
+        # Adiciona algo novo
+        client.post("/historico/registrar",
+                    json={"cnpj": "33333333000333", "texto": "novo"})
+        assert len(db.todas_interacoes()) == 2
+
+        # Replace volta ao snapshot
+        result = db.import_from_dict(payload, replace=True)
+        assert result["modo"] == "replace"
+        assert len(db.todas_interacoes()) == 1
+
+    def test_schema_incompativel_rejeitado(self, client):
+        result = db.import_from_dict({"schema_version": 999, "interacoes": []})
+        assert "erro" in result
+        assert "schema_version" in result["erro"]
+
+    def test_payload_invalido_rejeitado(self, client):
+        result = db.import_from_dict("não é dict")
+        assert "erro" in result
+
+    def test_feedback_preservado_no_roundtrip(self, client):
+        """Avaliação + correção sobrevivem ao export/import."""
+        reg = client.post("/historico/registrar",
+                          json={"cnpj": "11111111000111", "texto": "x"}).json()
+        client.post("/historico/feedback", json={
+            "interacao_id": reg["id"], "avaliacao": "ajustado",
+            "correcao": "aplicar regra X",
+        })
+        payload = db.export_to_dict()
+
+        db.reset_para_testes()
+        db.import_from_dict(payload)
+
+        restored = db.todas_interacoes()[0]
+        assert restored["avaliacao"] == "ajustado"
+        assert restored["correcao"] == "aplicar regra X"
+
+
 class TestSugestoes:
     def test_sugestoes_alertas_prazo_sem_historico(self, client):
         """Mesmo sem histórico, alertas de prazo do calendário fiscal são gerados."""

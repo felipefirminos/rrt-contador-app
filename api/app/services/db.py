@@ -259,3 +259,113 @@ def reset_para_testes() -> None:
     with _lock, _connect() as con:
         con.execute("DELETE FROM interacoes")
         con.commit()
+
+
+# ─── Backup / Restore (Round N) ─────────────────────────────────
+
+
+SCHEMA_VERSION = 1
+
+
+def export_to_dict() -> dict[str, Any]:
+    """Exporta toda a base para um dict JSON-serializável.
+
+    Format:
+        {
+          "schema_version": 1,
+          "exported_at": "2025-04-28T12:34:56",
+          "total": <N>,
+          "interacoes": [<row>, ...],
+        }
+    """
+    interacoes = todas_interacoes()
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "exported_at": datetime.now().isoformat(timespec="seconds"),
+        "total": len(interacoes),
+        "interacoes": interacoes,
+    }
+
+
+def import_from_dict(payload: dict[str, Any], replace: bool = False) -> dict[str, Any]:
+    """Importa interações de um dict no formato do export_to_dict.
+
+    Args:
+        payload: dict com schema_version, total, interacoes
+        replace: se True, deleta tudo antes (substituição total).
+                 Se False (default), faz INSERT OR IGNORE (deduplica por id).
+
+    Returns:
+        {"importadas": N, "ignoradas": M, "total_apos_import": K}
+    """
+    if not isinstance(payload, dict):
+        return {"erro": "Payload deve ser um dict"}
+
+    schema = payload.get("schema_version")
+    if schema != SCHEMA_VERSION:
+        return {
+            "erro": (
+                f"schema_version incompatível: arquivo tem {schema}, "
+                f"app espera {SCHEMA_VERSION}"
+            ),
+        }
+
+    interacoes = payload.get("interacoes", [])
+    if not isinstance(interacoes, list):
+        return {"erro": "Campo 'interacoes' deve ser lista"}
+
+    importadas = 0
+    ignoradas = 0
+    erros: list[str] = []
+
+    with _lock, _connect() as con:
+        if replace:
+            con.execute("DELETE FROM interacoes")
+
+        for item in interacoes:
+            try:
+                if replace:
+                    sql = """
+                    INSERT INTO interacoes
+                        (id, timestamp, cnpj, texto, classificacao_json,
+                         resultado_json, correcao, avaliacao, tags_json, origem)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """
+                else:
+                    sql = """
+                    INSERT OR IGNORE INTO interacoes
+                        (id, timestamp, cnpj, texto, classificacao_json,
+                         resultado_json, correcao, avaliacao, tags_json, origem)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """
+                cur = con.execute(sql, (
+                    item["id"], item["timestamp"], item["cnpj"], item["texto"],
+                    json.dumps(item.get("classificacao") or {}, ensure_ascii=False),
+                    json.dumps(item.get("resultado") or {}, ensure_ascii=False),
+                    item.get("correcao"), item.get("avaliacao"),
+                    json.dumps(item.get("tags") or [], ensure_ascii=False),
+                    item.get("origem", "direto"),
+                ))
+                if cur.rowcount > 0:
+                    importadas += 1
+                else:
+                    ignoradas += 1
+            except (KeyError, sqlite3.IntegrityError, sqlite3.DatabaseError) as exc:
+                erros.append(f"id={item.get('id', '?')}: {exc}")
+                ignoradas += 1
+
+        con.commit()
+        total_apos = con.execute(
+            "SELECT COUNT(*) FROM interacoes"
+        ).fetchone()[0]
+
+    result = {
+        "importadas": importadas,
+        "ignoradas": ignoradas,
+        "total_apos_import": total_apos,
+        "modo": "replace" if replace else "merge",
+    }
+    if erros:
+        result["erros"] = erros[:10]  # limita output
+        result["total_erros"] = len(erros)
+    return result
