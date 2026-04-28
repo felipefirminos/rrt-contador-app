@@ -322,3 +322,47 @@ class PrescricaoRequest(BaseModel):
     data_referencia: Optional[str] = Field(
         None, description="Data do protocolo (default: hoje)",
     )
+
+
+# ─── DIFAL ICMS (EC 87/2015) + ICMS-ST + ISS ─────────────────────
+
+
+class DIFALRequest(BaseModel):
+    valor_operacao: float = Field(..., gt=0)
+    aliquota_destino: float = Field(..., ge=0, le=30,
+                                     description="Alíquota interna do estado de destino (%)")
+    aliquota_interestadual: float = Field(..., ge=0, le=30,
+                                           description="Alíquota interestadual (4/7/12%)")
+    frete: float = Field(0.0, ge=0)
+    seguro: float = Field(0.0, ge=0)
+    outras_despesas: float = Field(0.0, ge=0)
+
+
+class ICMSSTRequest(BaseModel):
+    valor_operacao: float = Field(..., gt=0)
+    mva: float = Field(..., ge=0, le=300, description="Margem de Valor Agregado (%)")
+    aliquota_interna: float = Field(..., ge=0, le=30,
+                                     description="Alíquota interna do estado de DESTINO (%)")
+    aliquota_origem: float = Field(..., ge=0, le=30,
+                                    description="Alíquota interna do estado de ORIGEM (%)")
+    frete: float = Field(0.0, ge=0)
+    seguro: float = Field(0.0, ge=0)
+    outras_despesas: float = Field(0.0, ge=0)
+
+
+class ISSRequest(BaseModel):
+    valor_servico: float = Field(..., ge=0)
+    municipio: str = Field(..., min_length=2,
+                            description="ex: 'São Paulo-SP', 'Campinas-SP'")
+    item_lc116: Optional[int] = Field(
+        None, ge=1, le=40,
+        description="Item da LC 116/2003 (1=TI, 7=eng, 8=educ, 14=saúde, 17=consultoria)",
+    )
+    simples_nacional: bool = Field(
+        False,
+        description="Se True, alerta que ISS pode estar incluído no DAS",
+    )
+
+
+class MunicipioBuscaRequest(BaseModel):
+    texto: str = Field(..., min_length=2)

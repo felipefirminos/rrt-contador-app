@@ -46,6 +46,11 @@ from calc_mei import resumo_mei as _resumo_mei  # noqa: E402
 from calc_darf_codes import consultar_darf as _consultar_darf  # noqa: E402
 from calc_darf_codes import listar_por_regime as _darf_regime  # noqa: E402
 from calc_darf_codes import buscar as _darf_buscar  # noqa: E402
+from calc_difal import calcular_difal as _calc_difal  # noqa: E402
+from calc_icms_st import calcular_icms_st as _calc_icms_st  # noqa: E402
+from calc_iss import calcular_iss as _calc_iss  # noqa: E402
+from calc_iss import buscar_municipio as _buscar_municipio  # noqa: E402
+from calc_iss import consultar_municipio as _consultar_municipio  # noqa: E402
 
 # Recuperação tributária — só importa se a pasta existe
 try:
@@ -260,6 +265,60 @@ def resumo_mei(
         receita_bruta_anual=receita_bruta_anual,
         meses_atividade=meses_atividade,
     )
+
+
+def calc_difal(
+    valor_operacao: float,
+    aliquota_destino: float,
+    aliquota_interestadual: float,
+    frete: float = 0.0,
+    seguro: float = 0.0,
+    outras_despesas: float = 0.0,
+) -> dict[str, Any]:
+    return _calc_difal(
+        valor_operacao=valor_operacao,
+        aliquota_destino=aliquota_destino,
+        aliquota_interestadual=aliquota_interestadual,
+        frete=frete, seguro=seguro, outras_despesas=outras_despesas,
+    )
+
+
+def calc_icms_st(
+    valor_operacao: float,
+    mva: float,
+    aliquota_interna: float,
+    aliquota_origem: float,
+    frete: float = 0.0,
+    seguro: float = 0.0,
+    outras_despesas: float = 0.0,
+) -> dict[str, Any]:
+    return _calc_icms_st(
+        valor_operacao=valor_operacao, mva=mva,
+        aliquota_interna=aliquota_interna, aliquota_origem=aliquota_origem,
+        frete=frete, seguro=seguro, outras_despesas=outras_despesas,
+    )
+
+
+def calc_iss(
+    valor_servico: float,
+    municipio: str,
+    item_lc116: int | None = None,
+    simples_nacional: bool = False,
+) -> dict[str, Any]:
+    return _calc_iss(
+        valor_servico=valor_servico, municipio=municipio,
+        item_lc116=item_lc116, simples_nacional=simples_nacional,
+    )
+
+
+def buscar_municipio_iss(texto: str) -> dict[str, Any]:
+    matches = _buscar_municipio(texto)
+    return {
+        "query": texto,
+        "resultados": [
+            {"municipio": m[0], "score": m[1]} for m in matches[:10]
+        ],
+    }
 
 
 def calc_tema_69(
@@ -725,6 +784,85 @@ CALCULATOR_TOOLS = [
         },
     },
     {
+        "name": "calc_difal",
+        "description": (
+            "Calcula DIFAL (Diferencial de Alíquota ICMS) — EC 87/2015, LC 190/2022. "
+            "Operação interestadual destinada a consumidor final não-contribuinte: "
+            "DIFAL = base × (alíquota_interna_destino - alíquota_interestadual). "
+            "Desde 2022, 100% vai para o estado de DESTINO. Base = valor_operação + "
+            "frete + seguro + outras despesas. Alíquotas interestaduais comuns: "
+            "4% (importados), 7% (Norte/Nordeste/CO + ES), 12% (Sul + SE)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "valor_operacao": {"type": "number"},
+                "aliquota_destino": {"type": "number", "description": "Interna do destino (%)"},
+                "aliquota_interestadual": {"type": "number", "description": "4/7/12%"},
+                "frete": {"type": "number", "default": 0},
+                "seguro": {"type": "number", "default": 0},
+                "outras_despesas": {"type": "number", "default": 0},
+            },
+            "required": ["valor_operacao", "aliquota_destino", "aliquota_interestadual"],
+        },
+    },
+    {
+        "name": "calc_icms_st",
+        "description": (
+            "Calcula ICMS-ST (Substituição Tributária) — antecipação do imposto sobre toda "
+            "a cadeia. Base: BC-ST = (valor + despesas) × (1 + MVA/100); ICMS-ST = "
+            "BC-ST × alíq_interna_destino - ICMS_próprio (valor × alíq_origem). "
+            "Se ICMS-ST < 0 → não há ST a recolher; tem_restituicao indica direito a ressarcir."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "valor_operacao": {"type": "number"},
+                "mva": {"type": "number", "description": "Margem de Valor Agregado (%)"},
+                "aliquota_interna": {"type": "number", "description": "Interna do destino (%)"},
+                "aliquota_origem": {"type": "number", "description": "Interna do origem (%)"},
+                "frete": {"type": "number", "default": 0},
+                "seguro": {"type": "number", "default": 0},
+                "outras_despesas": {"type": "number", "default": 0},
+            },
+            "required": ["valor_operacao", "mva", "aliquota_interna", "aliquota_origem"],
+        },
+    },
+    {
+        "name": "calc_iss",
+        "description": (
+            "Calcula ISS sobre serviço prestado (LC 116/2003, alíquota máxima 5%). "
+            "Base de municípios brasileiros (incl. CCTs Campinas). Item LC 116 pode "
+            "alterar alíquota (1=TI, 7=engenharia, 8=educação, 14=saúde, 17=consultoria). "
+            "Para Simples Nacional, ISS pode estar incluído no DAS (retorna iss_valor=0 "
+            "+ iss_valor_base para referência). Município não-mapeado → alíquota máxima "
+            "5% como conservadora + sugestões de busca."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "valor_servico": {"type": "number"},
+                "municipio": {"type": "string", "description": "ex: 'São Paulo-SP'"},
+                "item_lc116": {"type": "integer", "description": "1-40 (opcional)"},
+                "simples_nacional": {"type": "boolean", "default": False},
+            },
+            "required": ["valor_servico", "municipio"],
+        },
+    },
+    {
+        "name": "buscar_municipio_iss",
+        "description": (
+            "Busca fuzzy de município brasileiro na base do ISS (≥5K municípios). "
+            "Retorna até 10 matches ranqueados. Use quando o usuário não souber a "
+            "grafia exata do município."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"texto": {"type": "string"}},
+            "required": ["texto"],
+        },
+    },
+    {
         "name": "darf_listar_regime",
         "description": (
             "Lista todos os códigos DARF aplicáveis a um regime tributário "
@@ -931,6 +1069,10 @@ TOOL_DISPATCH = {
     "darf_buscar": darf_buscar,
     "calc_tema_69": calc_tema_69,
     "verificar_prescricao": verificar_prescricao,
+    "calc_difal": calc_difal,
+    "calc_icms_st": calc_icms_st,
+    "calc_iss": calc_iss,
+    "buscar_municipio_iss": buscar_municipio_iss,
     "calc_distribuicao_lucros": calc_distribuicao_lucros,
     "calc_irpf_integrado": calc_irpf_integrado,
     "calc_cbs_ibs": calc_cbs_ibs,

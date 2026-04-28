@@ -205,6 +205,103 @@ class TestIRPFIntegrado:
         assert "ganhos_capital" in r.json()
 
 
+# DIFAL ICMS — EC 87/2015 + LC 190/2022
+class TestDIFAL:
+    def test_difal_basico(self, client):
+        # 5% × R$1000 = R$50
+        r = client.post("/calc/icms/difal", json={
+            "valor_operacao": 1000, "aliquota_destino": 17,
+            "aliquota_interestadual": 12,
+        })
+        assert r.json()["difal"] == 50.0
+
+    def test_difal_inclui_frete_seguro_outras(self, client):
+        # 5% × (1000+200+50+10) = R$63
+        r = client.post("/calc/icms/difal", json={
+            "valor_operacao": 1000, "aliquota_destino": 17,
+            "aliquota_interestadual": 12,
+            "frete": 200, "seguro": 50, "outras_despesas": 10,
+        })
+        d = r.json()
+        assert d["base_calculo"] == 1260.0
+        assert d["difal"] == 63.0
+
+    def test_difal_100pct_destino(self, client):
+        """EC 87/2015 + transição: desde 2022, 100% para o destino."""
+        r = client.post("/calc/icms/difal", json={
+            "valor_operacao": 1000, "aliquota_destino": 17,
+            "aliquota_interestadual": 12,
+        })
+        assert r.json()["destino_100_pct"] is True
+
+
+# ICMS-ST — Substituição Tributária
+class TestICMSST:
+    def test_icms_st_basico(self, client):
+        # BC = 500 × 1.40 = 700; ICMS interno = 700 × 18% = 126;
+        # ICMS próprio = 500 × 12% = 60; ICMS-ST = 126 - 60 = 66
+        r = client.post("/calc/icms/st", json={
+            "valor_operacao": 500, "mva": 40,
+            "aliquota_interna": 18, "aliquota_origem": 12,
+        })
+        d = r.json()
+        assert d["base_st"] == 700.0
+        assert d["icms_proprio"] == 60.0
+        assert d["icms_st"] == 66.0
+
+    def test_icms_st_aliquota_origem_obrigatoria(self, client):
+        """SKILL.md: Pydantic exige aliquota_origem (cada UF tem alíquota diferente)."""
+        r = client.post("/calc/icms/st", json={
+            "valor_operacao": 500, "mva": 40, "aliquota_interna": 18,
+        })
+        assert r.status_code == 422
+
+    def test_icms_st_brutos_negativos_zero_st(self, client):
+        """Quando ICMS próprio > ICMS interno, ST = 0 (sem restituição automática)."""
+        r = client.post("/calc/icms/st", json={
+            "valor_operacao": 500, "mva": 5,  # MVA muito baixa
+            "aliquota_interna": 7, "aliquota_origem": 12,  # origem maior que destino
+        })
+        d = r.json()
+        assert d["icms_st"] == 0.0
+        assert d["tem_restituicao"] is True
+
+
+# ISS — LC 116/2003
+class TestISS:
+    def test_iss_sao_paulo(self, client):
+        r = client.post("/calc/iss",
+                        json={"valor_servico": 10000, "municipio": "São Paulo-SP"})
+        d = r.json()
+        assert d["iss_valor"] == 500.0
+        assert d["aliquota"] == 5.0
+
+    def test_iss_simples_zera_iss_valor(self, client):
+        """Simples Nacional: ISS no DAS → iss_valor = 0 + iss_valor_base de referência."""
+        r = client.post("/calc/iss", json={
+            "valor_servico": 10000, "municipio": "São Paulo-SP",
+            "simples_nacional": True,
+        })
+        d = r.json()
+        assert d["iss_valor"] == 0.0
+        assert d["iss_valor_base"] == 500.0
+        assert "SIMPLES" in d.get("aviso", "").upper()
+
+    def test_iss_municipio_nao_mapeado_aliq_maxima(self, client):
+        """Município não-mapeado → alíquota máxima 5% (LC 116) como conservadora."""
+        r = client.post("/calc/iss",
+                        json={"valor_servico": 10000, "municipio": "Cidade Inexistente-XX"})
+        d = r.json()
+        # 200 OK com aviso (não 422 — resposta ainda útil)
+        assert r.status_code == 200
+        assert d["aliquota"] == 5.0
+        assert d.get("verificar_legislacao_municipal") is True
+
+    def test_buscar_municipio(self, client):
+        r = client.post("/calc/iss/buscar-municipio", json={"texto": "Campinas"})
+        assert len(r.json()["resultados"]) >= 1
+
+
 # Recuperação Tributária — Tema 69 STF + Prescrição (LC 118/2005)
 class TestRecuperacaoTributaria:
     def test_tema_69_presumido_calcula_3_65_pct(self, client):

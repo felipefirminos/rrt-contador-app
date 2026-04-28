@@ -112,6 +112,22 @@ def verificar_prescricao(data_pagamento: str,
     })
 
 
+def calc_difal(**kwargs) -> dict:
+    return _post("/calc/icms/difal", kwargs)
+
+
+def calc_icms_st(**kwargs) -> dict:
+    return _post("/calc/icms/st", kwargs)
+
+
+def calc_iss(**kwargs) -> dict:
+    return _post("/calc/iss", kwargs)
+
+
+def buscar_municipio(texto: str) -> dict:
+    return _post("/calc/iss/buscar-municipio", {"texto": texto})
+
+
 def calc_folha_batch(empregados: list[dict[str, Any]], regime: str = "presumido_real",
                      competencia: str | None = None, rat_pct: float = 2.0,
                      fap: float = 1.0) -> dict:

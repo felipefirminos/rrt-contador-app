@@ -9,12 +9,16 @@ from app.schemas.calculators import (
     DarfBuscaRequest,
     DarfRegimeRequest,
     DecimoTerceiroRequest,
+    DIFALRequest,
     DistribuicaoLucrosRequest,
     FeriasRequest,
     FolhaBatchRequest,
     HoraExtraRequest,
+    ICMSSTRequest,
     IRPFRequest,
+    ISSRequest,
     MEIResumoRequest,
+    MunicipioBuscaRequest,
     PrescricaoRequest,
     ProlaboreRequest,
     RescisaoRequest,
@@ -144,6 +148,38 @@ def darf_buscar(req: DarfBuscaRequest) -> dict:
 @router.post("/darf/regime")
 def darf_regime(req: DarfRegimeRequest) -> dict:
     return engine.darf_listar_regime(req.regime)
+
+
+@router.post("/icms/difal")
+def difal(req: DIFALRequest) -> dict:
+    """DIFAL ICMS — EC 87/2015 + LC 190/2022."""
+    return engine.calc_difal(**req.model_dump())
+
+
+@router.post("/icms/st")
+def icms_st(req: ICMSSTRequest) -> dict:
+    """ICMS-ST — Substituição Tributária."""
+    result = engine.calc_icms_st(**req.model_dump())
+    if "erro" in result:
+        raise HTTPException(status_code=422, detail=result["erro"])
+    return result
+
+
+@router.post("/iss")
+def iss(req: ISSRequest) -> dict:
+    """ISS sobre serviço — LC 116/2003."""
+    result = engine.calc_iss(**req.model_dump())
+    if "erro" in result and result.get("verificar_legislacao_municipal") is not True:
+        # Município não encontrado retorna sugestões + erro mas é resposta útil
+        # Apenas se não tiver indicador de "verificar" levantamos 422
+        if "Município" not in result.get("erro", ""):
+            raise HTTPException(status_code=422, detail=result["erro"])
+    return result
+
+
+@router.post("/iss/buscar-municipio")
+def buscar_municipio(req: MunicipioBuscaRequest) -> dict:
+    return engine.buscar_municipio_iss(req.texto)
 
 
 @router.post("/recuperacao/tema-69")
