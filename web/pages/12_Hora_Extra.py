@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_hora_extra  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="Hora Extra + DSR", page_icon="⏱️")
+
+render_sidebar()
 st.title("Horas Extras + DSR")
 st.caption(
     "CLT Arts. 59 (50% normal) e 70 (100% domingos/feriados) • "

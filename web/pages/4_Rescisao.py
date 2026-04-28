@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_rescisao  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="Rescisão Trabalhista", page_icon="✂️", layout="wide")
+
+render_sidebar()
 st.title("Rescisão Trabalhista")
 st.caption(
     "CLT Arts. 477-484-A • Lei 12.506/2011 (aviso proporcional) • "

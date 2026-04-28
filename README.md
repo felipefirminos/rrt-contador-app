@@ -9,7 +9,7 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
   system prompt e as calculadoras expostas como **tools** — o assistente
   chama as funções reais ao invés de improvisar números
 
-## Calculadoras expostas (v0.8 — 33 ferramentas + parsers + histórico + auto-record)
+## Calculadoras expostas (v0.9 — 35 ferramentas + parsers + histórico + auto-record + IRPF dossiê)
 
 ### Tributário PJ
 | Endpoint | Validação empírica |
@@ -87,6 +87,17 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
 | `POST /calc/gcap/etf-exterior` | Modo GUIDANCE — tratado de bitributação |
 | `POST /calc/carne-leao` | USD 10K × PTAX → R$52.800 → IRRF R$13.611 (27,5%) |
 
+### IRPF — Dossiê completo + Validador (Round L — v0.9)
+| Endpoint | Use |
+|---|---|
+| `POST /calc/irpf/dossie` | Gera dossiê PF com 12 seções + opcionalmente valida (17 regras) |
+| `POST /calc/irpf/validar` | Aplica as 17 regras em um dossiê pré-existente |
+
+17 regras de consistência cruzada (R01-R17): IRRF cruzado, limites de
+educação/PGBL, crypto custódia, exterior PTAX, comparativo
+completa×simplificada, dependentes com CPF, bens exterior em BRL,
+dividendos acima da isenção (Lei 15.270/2025), etc.
+
 ### Histórico + Inteligência (Round J — v0.7)
 
 Primeira camada **stateful** da app: persistência SQLite (`data/rrt.db`) +
@@ -128,13 +139,25 @@ Comportamento:
 - **Tags inferidas do path**: `/calc/recuperacao/tema-69` → `['recuperacao', 'tema-69']`
 - **Resultado preservado**: até 64KB do JSON da calc vai para `resultado_json`
 
+#### Round M — Streamlit auto-record sidebar (v0.9)
+
+Cada página de calc (Streamlit) agora inclui um painel "📚 Auto-record"
+na sidebar via `lib.auto_record.render_sidebar()`. Preenchendo o CNPJ
+uma vez, todas as chamadas seguintes da sessão são gravadas no histórico
+sem precisar passar header manualmente.
+
+`lib/api._post()` lê `st.session_state['ar_cnpj']` e injeta automaticamente
+em headers `X-Cliente-CNPJ` / `X-Cliente-Texto`. Detecção via
+`try: import streamlit` — fora do contexto Streamlit (testes), retorna
+dict vazio (não interfere).
+
 ### LLM
 | `POST /chat` + `POST /chat/stream` | 33 ferramentas como Anthropic tools |
 
 ## Qualidade
 
 - **57 scripts upstream passam seus testes próprios** (~1835 asserções) na cópia em `engine/`
-- **131 testes pytest** na API (`api/tests/`) cobrindo:
+- **137 testes pytest** na API (`api/tests/`) cobrindo:
   - Auditoria contra os 7 erros recorrentes do SKILL.md (§1 CPP, §2 INSS 11%, §3 controvérsia Simples, §4 efeito-salto, §5 engenharia, §6 escrituração, §7 transição 2025-2028)
   - Incidências de rescisão (CLT 144 — férias indenizadas isentas)
   - Guias da folha (vencimentos GPS dia 20, FGTS dia 7, DARF 0561)
@@ -157,10 +180,12 @@ Comportamento:
     proativas com calendário fiscal — 15 testes
   - **Auto-record middleware** (Round K): opt-in via header, só /calc/*, só 2xx,
     tags inferidas do path, body preservado, best-effort em CNPJ inválido — 11 testes
+  - **IRPF Dossiê + Validador** (Round L): 12 seções, 17 regras de consistência,
+    regras_excluidas funciona, payload mínimo aceito — 6 testes
   - Edge cases: validação Pydantic, propagação de erros do engine
 
 ```bash
-cd api && python3 -m pytest tests/ -v   # 131 passed in 0.39s
+cd api && python3 -m pytest tests/ -v   # 137 passed in 0.42s
 ```
 
 ## Arquitetura

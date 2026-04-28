@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_cbs_ibs, projecao_cbs_ibs  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="CBS / IBS — Reforma Tributária", page_icon="🏛️", layout="wide")
+
+render_sidebar()
 st.title("CBS / IBS — Reforma Tributária")
 st.caption(
     "EC 132/2023 + LC 214/2025 • Transição 2026-2033 • "

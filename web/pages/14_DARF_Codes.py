@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, darf_buscar, darf_consultar, darf_listar_regime  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="Códigos DARF/GPS/DAS", page_icon="🧾", layout="wide")
+
+render_sidebar()
 st.title("Códigos DARF / GPS / DAS")
 st.caption(
     "Base com 27+ códigos: IRPJ, CSLL, PIS, COFINS, IRRF, CSRF, INSS/GPS, FGTS, "

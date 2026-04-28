@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, buscar_municipio, calc_iss  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="ISS", page_icon="🏙️")
+
+render_sidebar()
 st.title("ISS — Imposto sobre Serviços")
 st.caption("LC 116/2003 (alíquota máxima 5%) • Base de municípios brasileiros")
 

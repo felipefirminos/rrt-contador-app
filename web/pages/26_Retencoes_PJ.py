@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_retencoes_pj  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="Retenções PJ → PJ", page_icon="🔁")
+
+render_sidebar()
 st.title("Retenções PJ → PJ")
 st.caption(
     "IN RFB 1.234/2012 + Art. 30 Lei 10.833/2003 + Art. 31 Lei 8.212/91 • "

@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_irpf  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="IRPF — Posição Anual", page_icon="📑", layout="wide")
+
+render_sidebar()
 st.title("IRPF — Posição Anual (Pessoa Física)")
 st.caption(
     "Exercício 2026 (ano-calendário 2025) • Lei 9.250/95 + Lei 15.270/2025 + RIR/2018 + IN RFB 1.500/2014 • "

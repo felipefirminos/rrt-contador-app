@@ -11,9 +11,12 @@ from lib.api import (  # noqa: E402
     APIError, calc_carne_leao, calc_gcap_imovel, calc_gcap_veiculo,
     gcap_crypto_checklist, gcap_etf_checklist,
 )
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="Ganho de Capital + Carnê-leão", page_icon="🪙", layout="wide")
+
+render_sidebar()
 st.title("Ganho de Capital + Carnê-leão (Pessoa Física)")
 st.caption(
     "4 variantes de gcap + carnê-leão isolado • "

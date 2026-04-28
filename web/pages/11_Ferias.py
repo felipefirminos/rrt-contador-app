@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_ferias  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="Férias", page_icon="🏖️")
+
+render_sidebar()
 st.title("Férias + 1/3 Constitucional")
 st.caption(
     "CLT Arts. 129-153 + CF Art. 7° XVII • "

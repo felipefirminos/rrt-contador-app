@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_comparativo  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="Comparativo de Regimes", page_icon="⚖️", layout="wide")
+
+render_sidebar()
 st.title("Comparativo de Regimes Tributários")
 st.caption("Simples Nacional × Lucro Presumido × Lucro Real (cenário anual completo)")
 

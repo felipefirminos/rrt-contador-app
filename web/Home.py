@@ -28,7 +28,7 @@ else:
 
 st.markdown("---")
 
-st.subheader("Calculadoras disponíveis (v0.8 — 33 ferramentas + parsers + histórico + auto-record)")
+st.subheader("Calculadoras disponíveis (v0.9 — 35 ferramentas + parsers + histórico + auto-record + IRPF dossiê)")
 st.markdown(
     """
     **Tributário PJ — Apuração**
@@ -72,6 +72,7 @@ st.markdown(
     | Calculadora | Página | Base legal |
     |---|---|---|
     | IRPF — Posição Anual | `IRPF` | Lei 9.250/95 + RIR/2018 |
+    | **IRPF — Dossiê + Validador (NOVO v0.9)** | `IRPF Dossie` | 12 seções + 17 regras de consistência cruzada |
     | **Ganho de Capital (4 tipos) + Carnê-leão** | `Gcap e Carne Leao` | Lei 11.196/2005 + Lei 14.754/2023 + IN RFB 1.585 |
 
     **Parsers (upload)**
@@ -85,7 +86,8 @@ st.markdown(
     | Função | Página | Use |
     |---|---|---|
     | Histórico SQLite por CNPJ + detector de padrões + sugestões proativas | `Historico Cliente` | Memória institucional do escritório, calendário fiscal automatizado |
-    | **Auto-record (NOVO v0.8)** | _middleware transparente_ | Header `X-Cliente-CNPJ` em qualquer `/calc/*` grava automaticamente |
+    | Auto-record (v0.8) | _middleware transparente_ | Header `X-Cliente-CNPJ` em qualquer `/calc/*` grava automaticamente |
+    | **Auto-record sidebar (v0.9)** | sidebar de cada página | Preencha o CNPJ uma vez na sidebar — todas as calcs gravam no histórico |
 
     **Q&A**
 

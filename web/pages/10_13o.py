@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_decimo_terceiro  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="13º Salário", page_icon="🎁")
+
+render_sidebar()
 st.title("13º Salário")
 st.caption("Lei 4.090/1962 + CF Art. 7° VIII • 1ª parcela até 30/nov • 2ª até 20/dez")
 

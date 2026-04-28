@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_lucro_presumido  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="Lucro Presumido", page_icon="📊")
+
+render_sidebar()
 st.title("Lucro Presumido — Apuração Trimestral")
 st.caption(
     "Lei 9.249/95 (presunção + alíquotas) + Lei 9.718/98 (PIS/COFINS cumulativo) • "

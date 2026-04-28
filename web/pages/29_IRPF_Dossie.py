@@ -8,9 +8,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, irpf_dossie, irpf_validar  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="IRPF — Dossiê + Validador", page_icon="📋", layout="wide")
+
+render_sidebar()
 st.title("IRPF — Dossiê Completo + Validador (17 regras)")
 st.caption(
     "Gera dossiê com 12 seções (enquadramento, rendimentos tributáveis/exclusivos/"

@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_distribuicao_lucros  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="Distribuição de Lucros", page_icon="🪙", layout="wide")
+
+render_sidebar()
 st.title("Distribuição de Lucros")
 st.caption(
     "Lei 15.270/2025 + Lei 9.249/95 art. 10 + LC 123/2006 art. 14 • "

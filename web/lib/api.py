@@ -14,9 +14,35 @@ class APIError(Exception):
     pass
 
 
+def _auto_record_headers() -> dict[str, str]:
+    """Lê CNPJ + texto do st.session_state se Streamlit estiver disponível.
+
+    Permite que `lib.auto_record.render_sidebar()` injete headers em
+    qualquer chamada /calc/* sem que o código de cada página precise
+    passá-los manualmente.
+    """
+    try:
+        import streamlit as st  # noqa: F401 — só importado quando rodando em UI
+        cnpj = (st.session_state.get("ar_cnpj") or "").strip()
+        texto = (st.session_state.get("ar_texto") or "").strip()
+        h: dict[str, str] = {}
+        if cnpj:
+            h["X-Cliente-CNPJ"] = cnpj
+        if texto:
+            h["X-Cliente-Texto"] = texto
+        return h
+    except Exception:  # noqa: BLE001 — fora do contexto Streamlit (testes, scripts)
+        return {}
+
+
 def _post(path: str, payload: dict[str, Any]) -> dict[str, Any]:
     try:
-        r = httpx.post(f"{API_BASE}{path}", json=payload, timeout=60.0)
+        r = httpx.post(
+            f"{API_BASE}{path}",
+            json=payload,
+            headers=_auto_record_headers(),
+            timeout=60.0,
+        )
     except httpx.ConnectError as exc:
         raise APIError(
             f"Sem conexão com a API em {API_BASE}. "

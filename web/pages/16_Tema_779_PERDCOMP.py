@@ -8,9 +8,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_tema_779, gerar_minuta_perdcomp  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="Tema 779 + PER/DCOMP", page_icon="🧪", layout="wide")
+
+render_sidebar()
 st.title("Tema 779 STJ + Minuta PER/DCOMP")
 st.caption(
     "STJ Tema 779 (REsp 1.221.170/PR) — conceito amplo de insumo • "

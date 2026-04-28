@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_simples_das, sugerir_anexo_engenharia  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="Simples Nacional — DAS", page_icon="📊")
+
+render_sidebar()
 st.title("DAS — Simples Nacional")
 st.caption("LC 123/2006, Arts. 18-19 • LC 155/2016 • Resolução CGSN 140/2018")
 

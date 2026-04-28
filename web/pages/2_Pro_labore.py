@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_prolabore  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="Pró-labore", page_icon="💰")
+
+render_sidebar()
 st.title("Pró-labore")
 st.caption("INSS sócio 11% (IN RFB 971/2009 art. 65) + CPP 20% conforme regime + IRRF (Lei 15.270/2025)")
 

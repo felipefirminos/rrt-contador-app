@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_difal  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="DIFAL ICMS", page_icon="🚛")
+
+render_sidebar()
 st.title("DIFAL — Diferencial de Alíquota ICMS")
 st.caption(
     "EC 87/2015 + LC 190/2022 • Operação interestadual destinada a "

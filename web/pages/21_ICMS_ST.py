@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_icms_st  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="ICMS-ST", page_icon="📦")
+
+render_sidebar()
 st.title("ICMS-ST — Substituição Tributária")
 st.caption(
     "Antecipação do imposto sobre toda a cadeia (ICMS Convênios + protocolos por UF) • "

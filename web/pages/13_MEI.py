@@ -7,9 +7,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, resumo_mei  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="MEI", page_icon="🧑‍💼")
+
+render_sidebar()
 st.title("MEI — Resumo Completo")
 st.caption(
     "LC 123/2006 + LC 188/2021 + Resolução CGSN 140/2018 • "

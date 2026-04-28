@@ -8,9 +8,12 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib.api import APIError, calc_tema_69, verificar_prescricao  # noqa: E402
+from lib.auto_record import render_sidebar  # noqa: E402
 
 
 st.set_page_config(page_title="Recuperação Tributária", page_icon="⚖️", layout="wide")
+
+render_sidebar()
 st.title("Recuperação Tributária")
 st.caption(
     "STF Tema 69 (RE 574.706) • LC 118/2005 (prescrição quinquenal) • "
