@@ -1,8 +1,11 @@
-fastapi>=0.115.0
-uvicorn[standard]>=0.32.0
-pydantic>=2.9.0
-pydantic-settings>=2.5.0
-anthropic>=0.40.0
-python-multipart>=0.0.12
-pdfplumber>=0.11.0
-httpx>=0.27.0
+# Backend RRT Contador — versões pinadas para reprodutibilidade entre máquinas.
+# Atualizar com cuidado e rodar pytest após cada bump.
+fastapi==0.128.8
+uvicorn[standard]==0.39.0
+pydantic==2.13.3
+pydantic-settings==2.11.0
+anthropic==0.97.0
+python-multipart==0.0.20
+pdfplumber==0.11.8
+httpx==0.28.1
+pytest==8.4.2
