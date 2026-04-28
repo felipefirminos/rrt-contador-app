@@ -28,6 +28,9 @@ from calc_comparativo_regimes import comparar_regimes as _comparar_regimes  # no
 from calc_rescisao import calcular_rescisao as _calc_rescisao  # noqa: E402
 from calc_folha_batch import processar_folha_batch as _processar_folha_batch  # noqa: E402
 from calc_distribuicao_lucros import calcular_distribuicao as _calc_distribuicao  # noqa: E402
+from calc_irpf_integrado import calcular_irpf_integrado as _calc_irpf  # noqa: E402
+from calc_cbs_ibs import calcular_cbs_ibs as _calc_cbs_ibs  # noqa: E402
+from calc_cbs_ibs import projecao_transicao as _proj_transicao  # noqa: E402
 
 
 def calc_simples_das(
@@ -104,6 +107,54 @@ def calc_folha_batch(
         empregados=empregados,
         regime=regime,
         competencia=competencia,
+    )
+
+
+def calc_irpf_integrado(
+    salarios_mensais: list[float] | None = None,
+    num_dependentes: int = 0,
+    pensao_alimenticia_mensal: float = 0.0,
+    deducoes_anuais: list[dict[str, Any]] | None = None,
+    rendimentos_exterior: list[dict[str, Any]] | None = None,
+    ganhos_capital: list[dict[str, Any]] | None = None,
+    irrf_ja_retido_anual: float = 0.0,
+) -> dict[str, Any]:
+    return _calc_irpf(
+        salarios_mensais=salarios_mensais or [],
+        num_dependentes=num_dependentes,
+        pensao_alimenticia_mensal=pensao_alimenticia_mensal,
+        deducoes_anuais=deducoes_anuais or [],
+        rendimentos_exterior=rendimentos_exterior or [],
+        ganhos_capital=ganhos_capital or [],
+        irrf_ja_retido_anual=irrf_ja_retido_anual,
+    )
+
+
+def calc_cbs_ibs(
+    valor_operacao: float,
+    ano: int,
+    regime: str = "lucro_presumido",
+    aliquota_icms: float = 0.0,
+    aliquota_iss: float = 0.0,
+    tipo_operacao: str = "mercadoria",
+    setor_especifico: str | None = None,
+) -> dict[str, Any]:
+    return _calc_cbs_ibs(
+        valor_operacao=valor_operacao, ano=ano, regime=regime,
+        aliquota_icms=aliquota_icms, aliquota_iss=aliquota_iss,
+        tipo_operacao=tipo_operacao, setor_especifico=setor_especifico,
+    )
+
+
+def projecao_cbs_ibs(
+    valor_operacao: float,
+    regime: str = "lucro_presumido",
+    aliquota_icms: float = 0.0,
+    aliquota_iss: float = 0.0,
+) -> dict[str, Any]:
+    return _proj_transicao(
+        valor_operacao=valor_operacao, regime=regime,
+        aliquota_icms=aliquota_icms, aliquota_iss=aliquota_iss,
     )
 
 
@@ -321,6 +372,113 @@ CALCULATOR_TOOLS = [
         },
     },
     {
+        "name": "calc_cbs_ibs",
+        "description": (
+            "Calcula CBS + IBS sobre uma operação fiscal específica em um ano da "
+            "transição (2026-2033) — EC 132/2023 + LC 214/2025. 2026 = ano-teste "
+            "(CBS 0,9% + IBS 0,1%); fases progressivas até regime definitivo em 2033 "
+            "(CBS ~8,8% + IBS ~17,7%). Retorna comparativo carga antiga vs nova e "
+            "compensação CBS×PIS/COFINS quando aplicável (2026). Setores específicos: "
+            "combustíveis (monofásico), financeiro/imobiliário/saúde (regimes diferenciados)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "valor_operacao": {"type": "number"},
+                "ano": {"type": "integer", "description": "2026-2033 transição"},
+                "regime": {"type": "string", "enum": ["simples", "lucro_presumido", "lucro_real"]},
+                "aliquota_icms": {"type": "number", "default": 0},
+                "aliquota_iss": {"type": "number", "default": 0},
+                "tipo_operacao": {"type": "string", "enum": ["mercadoria", "servico", "misto"]},
+                "setor_especifico": {
+                    "type": "string",
+                    "enum": ["combustiveis", "financeiro", "imobiliario", "saude", "educacao"],
+                },
+            },
+            "required": ["valor_operacao", "ano"],
+        },
+    },
+    {
+        "name": "projecao_cbs_ibs",
+        "description": (
+            "Gera projeção da carga tributária ano-a-ano de 2026 a 2033 para a "
+            "mesma operação. Útil para planejamento de transição: mostra quando a "
+            "carga ultrapassa o regime atual e pode forçar re-precificação."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "valor_operacao": {"type": "number"},
+                "regime": {"type": "string", "enum": ["simples", "lucro_presumido", "lucro_real"]},
+                "aliquota_icms": {"type": "number", "default": 0},
+                "aliquota_iss": {"type": "number", "default": 0},
+            },
+            "required": ["valor_operacao"],
+        },
+    },
+    {
+        "name": "calc_irpf_integrado",
+        "description": (
+            "Calcula a posição anual de IRPF para Pessoa Física (Exercício 2026, "
+            "ano-calendário 2025). Integra: rendimentos CLT mensais, deduções legais "
+            "(saúde, educação, previdência privada — com validação de limites), "
+            "carnê-leão (rendimentos no exterior), ganhos de capital (imóvel, veículo). "
+            "Compara com desconto simplificado (20% até R$16.754,34) e retorna situação "
+            "fiscal: ZERADO, RESTITUIR ou PAGAR. Base: Lei 9.250/95, Lei 15.270/2025, "
+            "RIR/2018, IN RFB 1.500/2014."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "salarios_mensais": {
+                    "type": "array",
+                    "items": {"type": "number"},
+                    "description": "12 valores mensais; vazio = sem renda CLT",
+                },
+                "num_dependentes": {"type": "integer", "default": 0},
+                "pensao_alimenticia_mensal": {"type": "number", "default": 0},
+                "deducoes_anuais": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "tipo": {"type": "string", "enum": ["saude", "educacao",
+                                "previdencia_privada", "pensao_alimenticia",
+                                "dependentes", "livro_caixa"]},
+                            "valor": {"type": "number"},
+                        },
+                        "required": ["tipo", "valor"],
+                    },
+                },
+                "rendimentos_exterior": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "valor": {"type": "number"},
+                            "moeda": {"type": "string", "enum": ["USD", "EUR", "GBP"]},
+                            "mes": {"type": "integer"},
+                        },
+                        "required": ["valor", "moeda", "mes"],
+                    },
+                },
+                "ganhos_capital": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "tipo": {"type": "string", "enum": ["imovel", "veiculo"]},
+                            "valor_venda": {"type": "number"},
+                            "custo_aquisicao": {"type": "number"},
+                        },
+                        "required": ["tipo", "valor_venda", "custo_aquisicao"],
+                    },
+                },
+                "irrf_ja_retido_anual": {"type": "number", "default": 0},
+            },
+        },
+    },
+    {
         "name": "calc_rescisao",
         "description": (
             "Calcula rescisão trabalhista (CLT Arts. 477-484-A, Lei 12.506/2011). "
@@ -366,4 +524,7 @@ TOOL_DISPATCH = {
     "calc_rescisao": calc_rescisao,
     "calc_folha_batch": calc_folha_batch,
     "calc_distribuicao_lucros": calc_distribuicao_lucros,
+    "calc_irpf_integrado": calc_irpf_integrado,
+    "calc_cbs_ibs": calc_cbs_ibs,
+    "projecao_cbs_ibs": projecao_cbs_ibs,
 }

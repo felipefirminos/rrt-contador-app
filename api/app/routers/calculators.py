@@ -3,9 +3,12 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 
 from app.schemas.calculators import (
+    CBSIBSProjecaoRequest,
+    CBSIBSRequest,
     ComparativoRegimesRequest,
     DistribuicaoLucrosRequest,
     FolhaBatchRequest,
+    IRPFRequest,
     ProlaboreRequest,
     RescisaoRequest,
     SimplesDASRequest,
@@ -85,3 +88,28 @@ def distribuicao_lucros(req: DistribuicaoLucrosRequest) -> dict:
     if "erro" in result:
         raise HTTPException(status_code=422, detail=result["erro"])
     return result
+
+
+@router.post("/irpf")
+def irpf_integrado(req: IRPFRequest) -> dict:
+    payload = req.model_dump()
+    result = engine.calc_irpf_integrado(**payload)
+    if "erro" in result:
+        raise HTTPException(status_code=422, detail=result["erro"])
+    return result
+
+
+@router.post("/cbs-ibs")
+def cbs_ibs(req: CBSIBSRequest) -> dict:
+    """Reforma Tributária — operação isolada num ano específico (2026-2033)."""
+    result = engine.calc_cbs_ibs(**req.model_dump())
+    if "erro" in result:
+        raise HTTPException(status_code=422, detail=result["erro"])
+    return result
+
+
+@router.post("/cbs-ibs/projecao")
+def cbs_ibs_projecao(req: CBSIBSProjecaoRequest) -> dict:
+    """Reforma Tributária — projeção ano-a-ano 2026-2033."""
+    projecao = engine.projecao_cbs_ibs(**req.model_dump())
+    return {"projecao": projecao}

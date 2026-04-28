@@ -157,3 +157,74 @@ class DistribuicaoLucrosRequest(BaseModel):
             "Lei 15.270/2025 (CF art. 146 III 'd')"
         ),
     )
+
+
+# ─── IRPF Integrado (Pessoa Física) ──────────────────────────────
+
+TipoDeducao = Literal["saude", "educacao", "previdencia_privada", "pensao_alimenticia",
+                       "dependentes", "livro_caixa"]
+TipoGCap = Literal["imovel", "veiculo"]
+Moeda = Literal["USD", "EUR", "GBP"]
+
+
+class DeducaoIRPF(BaseModel):
+    tipo: TipoDeducao
+    valor: float = Field(..., ge=0)
+    documentos: list[str] = Field(default_factory=list)
+
+
+class RendimentoExterior(BaseModel):
+    valor: float = Field(..., ge=0, description="Valor em moeda estrangeira")
+    moeda: Moeda
+    mes: int = Field(..., ge=1, le=12)
+
+
+class GanhoCapitalIRPF(BaseModel):
+    tipo: TipoGCap
+    valor_venda: float = Field(..., gt=0)
+    custo_aquisicao: float = Field(..., ge=0)
+    data_aquisicao: Optional[str] = Field(None, description="YYYY-MM-DD")
+    data_venda: Optional[str] = Field(None, description="YYYY-MM-DD")
+    finalidade_unico_imovel: Optional[bool] = Field(
+        None, description="Imóvel único < R$440K isento (Art. 23 Lei 9.250/95)",
+    )
+
+
+class IRPFRequest(BaseModel):
+    salarios_mensais: list[float] = Field(
+        default_factory=list,
+        description="12 valores mensais (R$). Lista vazia = sem renda CLT.",
+    )
+    num_dependentes: int = Field(0, ge=0, le=20)
+    pensao_alimenticia_mensal: float = Field(0.0, ge=0)
+    deducoes_anuais: list[DeducaoIRPF] = Field(default_factory=list)
+    rendimentos_exterior: list[RendimentoExterior] = Field(default_factory=list)
+    ganhos_capital: list[GanhoCapitalIRPF] = Field(default_factory=list)
+    irrf_ja_retido_anual: float = Field(
+        0.0, ge=0,
+        description="IRRF retido por outros fontes (auto, 3º) já recolhido",
+    )
+
+
+# ─── CBS / IBS — Reforma Tributária ──────────────────────────────
+
+RegimeReforma = Literal["simples", "lucro_presumido", "lucro_real"]
+TipoOperacao = Literal["mercadoria", "servico", "misto"]
+SetorEspecifico = Literal["combustiveis", "financeiro", "imobiliario", "saude", "educacao"]
+
+
+class CBSIBSRequest(BaseModel):
+    valor_operacao: float = Field(..., gt=0)
+    ano: int = Field(..., ge=2026, le=2099, description="Ano da operação (2026-2033 transição)")
+    regime: RegimeReforma = "lucro_presumido"
+    aliquota_icms: float = Field(0.0, ge=0, le=30, description="ICMS atual (% da operação)")
+    aliquota_iss: float = Field(0.0, ge=0, le=10, description="ISS atual (% — máximo 5% LC 116)")
+    tipo_operacao: TipoOperacao = "mercadoria"
+    setor_especifico: Optional[SetorEspecifico] = None
+
+
+class CBSIBSProjecaoRequest(BaseModel):
+    valor_operacao: float = Field(..., gt=0)
+    regime: RegimeReforma = "lucro_presumido"
+    aliquota_icms: float = Field(0.0, ge=0, le=30)
+    aliquota_iss: float = Field(0.0, ge=0, le=10)

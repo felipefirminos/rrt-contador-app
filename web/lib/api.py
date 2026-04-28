@@ -81,6 +81,18 @@ def calc_distribuicao_lucros(**kwargs) -> dict:
     return _post("/calc/distribuicao-lucros", kwargs)
 
 
+def calc_irpf(**kwargs) -> dict:
+    return _post("/calc/irpf", kwargs)
+
+
+def calc_cbs_ibs(**kwargs) -> dict:
+    return _post("/calc/cbs-ibs", kwargs)
+
+
+def projecao_cbs_ibs(**kwargs) -> dict:
+    return _post("/calc/cbs-ibs/projecao", kwargs)
+
+
 def chat(message: str, history: list[dict[str, str]]) -> dict:
     return _post("/chat", {"message": message, "history": history})
 

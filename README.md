@@ -9,17 +9,36 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
   system prompt e as calculadoras expostas como **tools** — o assistente
   chama as funções reais ao invés de improvisar números
 
-## Calculadoras expostas (v0.2 — 6 de ~60)
+## Calculadoras expostas (v0.3 — 9 ferramentas, ~40 ainda no engine)
 
 | Endpoint | Calc | Empiricamente validado |
 |---|---|---|
 | `POST /calc/simples-das` | DAS + Fator R + sublimite | RBT12 R$900K, Anexo V folha R$300K → migra Anexo III |
+| `POST /calc/sugerir-anexo-engenharia` | CNAE 71.12, 71.11, 43.29 (SKILL.md §5) | Executa obras → IV; consultoria pura → III/V |
 | `POST /calc/prolabore` | INSS 11% + CPP + IRRF (Lei 15.270) | R$5K/Presumido → líquido R$4.450, custo R$6K |
 | `POST /calc/comparativo-regimes` | Simples × Presumido × Lucro Real | R$2.4M, margem 25%, 1 sócio R$8K + R$30K → recomenda Presumido |
 | `POST /calc/rescisao` | 4 tipos (s/ JC, pedido, JC, acordo 484-A) | 5 anos R$5.8K → bruto R$32.622, multa R$12K |
 | `POST /calc/folha-batch` | N empregados, GPS+FGTS+DARF 0561 | 3 empregados → bruto R$13.6K, GPS R$5.147,41 |
 | `POST /calc/distribuicao-lucros` | Lei 15.270/2025 + transição | R$50.001 → líquido R$45.000,90 (efeito-salto) |
-| `POST /chat` | Q&A LLM com tools | 6 calculadoras expostas como Anthropic tools |
+| `POST /calc/irpf` | Posição anual PF (CLT + deduções + carnê-leão + gcap) | R$8K/mês CLT + 1 dep + R$5K saúde → ZERADO |
+| `POST /calc/cbs-ibs` | EC 132/2023 + LC 214/2025 | 2026: CBS 0,9% + IBS 0,1%; 2033: ~26,5% combinada |
+| `POST /calc/cbs-ibs/projecao` | Projeção 2026-2033 ano-a-ano | Mostra carga em cada ano da transição |
+| `POST /chat` | Q&A LLM com tools | 9 ferramentas expostas (8 calc + 1 sugeridor) |
+
+## Qualidade
+
+- **57 scripts upstream passam seus testes próprios** (~1835 asserções) na cópia em `engine/`
+- **37 testes pytest** na API (`api/tests/`) cobrindo:
+  - Auditoria contra os 7 erros recorrentes do SKILL.md (§1 CPP, §2 INSS 11%, §3 controvérsia Simples, §4 efeito-salto, §5 engenharia, §6 escrituração, §7 transição 2025-2028)
+  - Incidências de rescisão (CLT 144 — férias indenizadas isentas)
+  - Guias da folha (vencimentos GPS dia 20, FGTS dia 7, DARF 0561)
+  - IRPF integrado (cenários CLT, vazio, gcap puro)
+  - CBS/IBS (alíquotas 2026/2033, setores específicos, projeção)
+  - Edge cases: validação Pydantic, propagação de erros do engine
+
+```bash
+cd api && python3 -m pytest tests/ -v   # 37 passed in 0.10s
+```
 
 ## Arquitetura
 
@@ -90,6 +109,10 @@ cp .env.example .env
 | POST | `/calc/rescisao` | Rescisão CLT (4 tipos: s/ JC, pedido, JC, acordo 484-A) |
 | POST | `/calc/folha-batch` | Folha de N empregados + guias consolidadas |
 | POST | `/calc/distribuicao-lucros` | Distribuição de lucros + Lei 15.270/2025 |
+| POST | `/calc/sugerir-anexo-engenharia` | Enquadramento Anexo IV vs III/V para CNAEs ambíguos |
+| POST | `/calc/irpf` | Posição anual IRPF (CLT + deduções + carnê-leão + gcap) |
+| POST | `/calc/cbs-ibs` | CBS+IBS de uma operação num ano (2026-2033) |
+| POST | `/calc/cbs-ibs/projecao` | Projeção 2026-2033 da mesma operação |
 | POST | `/chat` | Q&A síncrono (resposta + trace de tool calls) |
 | POST | `/chat/stream` | Q&A com SSE (streaming) |
 

@@ -28,18 +28,20 @@ else:
 
 st.markdown("---")
 
-st.subheader("Calculadoras disponíveis (v0.2)")
+st.subheader("Calculadoras disponíveis (v0.3)")
 st.markdown(
     """
     | Calculadora | Página | Use quando | Base legal |
     |---|---|---|---|
-    | **DAS Simples Nacional** | `Simples Nacional` | Apurar DAS mensal, Fator R, sublimite. | LC 123/2006, Res. CGSN 140/2018 |
+    | **DAS Simples Nacional** | `Simples Nacional` | Apurar DAS mensal, Fator R, sublimite. Inclui sugeridor de Anexo para CNAEs ambíguos de engenharia. | LC 123/2006, Res. CGSN 140/2018 |
     | **Pró-labore** | `Pro labore` | INSS sócio (11%) + CPP + IRRF + custo total empresa. | IN RFB 971/2009, Lei 15.270/2025 |
     | **Comparativo de Regimes** | `Comparativo Regimes` | Simples × Presumido × Lucro Real (ano completo). | Múltiplas (LC 123, RIR, etc.) |
     | **Rescisão** | `Rescisao` | 4 tipos (s/ JC, pedido, JC, acordo 484-A). | CLT 477-484-A, Lei 12.506 |
     | **Folha em Lote** | `Folha Batch` | N empregados → guias GPS/FGTS/DARF 0561. | CLT, Lei 8.212, Lei 8.036 |
     | **Distribuição de Lucros** | `Distribuicao Lucros` | IRRF 10%, regra de transição, alerta Simples. | Lei 15.270/2025 + Lei 9.249 |
-    | **Q&A com LLM** | `Chat` | Pergunte: o assistente cita base legal e chama todas as 6 calculadoras como tools. | SKILL.md cacheado |
+    | **IRPF — Posição Anual** | `IRPF` | CLT + deduções + carnê-leão + ganho de capital. | Lei 9.250/95 + Lei 15.270/2025 + RIR/2018 |
+    | **CBS / IBS — Reforma** | `CBS IBS` | Operação 2026-2033 + projeção da transição. | EC 132/2023 + LC 214/2025 |
+    | **Q&A com LLM** | `Chat` | Pergunte: o assistente cita base legal e chama todas as 9 ferramentas como tools. | SKILL.md cacheado |
     """
 )
 

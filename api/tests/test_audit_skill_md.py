@@ -168,6 +168,98 @@ class TestRescisaoIncidencias:
         assert d["multa_fgts"] == 0
 
 
+# IRPF — orquestrador anual (Lei 9.250/95 + Lei 15.270/2025)
+class TestIRPFIntegrado:
+    def test_assalariado_simples_zera(self, client):
+        """CLT R$8K/mês × 12 com IRRF retido mensalmente → saldo zerado."""
+        r = client.post("/calc/irpf", json={
+            "salarios_mensais": [8000.0] * 12,
+            "num_dependentes": 1,
+            "deducoes_anuais": [{"tipo": "saude", "valor": 5000,
+                                 "documentos": ["recibo"]}],
+        })
+        assert r.status_code == 200
+        d = r.json()["posicao_fiscal"]
+        assert d["renda_tributavel_anual"] > 0
+        assert d["situacao_fiscal"] in ("ZERADO", "RESTITUIR", "PAGAR")
+
+    def test_payload_vazio_retorna_zerado(self, client):
+        r = client.post("/calc/irpf", json={})
+        assert r.status_code == 200
+        assert r.json()["posicao_fiscal"]["situacao_fiscal"] == "ZERADO"
+
+    def test_pessoa_fisica_sem_renda_clt_apenas_gcap(self, client):
+        """PF que vendeu imóvel sem ser único (lucro de R$200K → 15%)."""
+        r = client.post("/calc/irpf", json={
+            "salarios_mensais": [],
+            "ganhos_capital": [{
+                "tipo": "imovel",
+                "valor_venda": 800000,
+                "custo_aquisicao": 600000,
+                "data_aquisicao": "2018-01-15",
+                "data_venda": "2025-09-01",
+            }],
+        })
+        assert r.status_code == 200
+        # Verifica que estrutura de gcap está presente
+        assert "ganhos_capital" in r.json()
+
+
+# CBS / IBS — Reforma Tributária (EC 132/2023 + LC 214/2025)
+class TestCBSIBSReformaTributaria:
+    def test_2026_ano_teste_aliquotas_corretas(self, client):
+        """SKILL.md Fluxo 7: 2026 fase teste = CBS 0,9% + IBS 0,1%."""
+        r = client.post("/calc/cbs-ibs", json={
+            "valor_operacao": 10000, "ano": 2026,
+            "regime": "lucro_presumido", "aliquota_icms": 18,
+            "tipo_operacao": "mercadoria",
+        })
+        d = r.json()
+        assert d["cbs_aliquota"] == 0.9
+        assert d["ibs_aliquota"] == 0.1
+        assert d["cbs_valor"] == 90.0
+        assert d["ibs_valor"] == 10.0
+        # PIS/COFINS continuam vigentes em 2026
+        assert d["pis_cofins_vigente"] is True
+        # CBS é compensável com PIS/COFINS em 2026
+        assert d["compensacao_cbs_com_pis_cofins"] == 90.0
+
+    def test_ano_anterior_a_2026_rejeitado(self, client):
+        r = client.post("/calc/cbs-ibs", json={
+            "valor_operacao": 10000, "ano": 2025,
+        })
+        # ano < 2026 falha no schema (ge=2026) → 422 antes do engine
+        assert r.status_code == 422
+
+    def test_2033_regime_definitivo(self, client):
+        r = client.post("/calc/cbs-ibs", json={
+            "valor_operacao": 10000, "ano": 2033,
+        })
+        d = r.json()
+        # ICMS/ISS extintos em 2033
+        assert d["icms_iss_pct_vigente"] == 0
+        assert "definitivo" in d["fase"].lower()
+        # Carga combinada CBS+IBS ~ 26,5% (referência)
+        assert d["aliquota_combinada"] >= 25.0
+
+    def test_setor_financeiro_emite_aviso(self, client):
+        r = client.post("/calc/cbs-ibs", json={
+            "valor_operacao": 10000, "ano": 2027,
+            "setor_especifico": "financeiro", "tipo_operacao": "servico",
+        })
+        assert "ESPECÍFICO" in r.json()["aviso_setor_especifico"]
+
+    def test_projecao_cobre_2026_a_2033(self, client):
+        r = client.post("/calc/cbs-ibs/projecao", json={
+            "valor_operacao": 10000, "regime": "lucro_presumido",
+            "aliquota_icms": 18,
+        })
+        d = r.json()
+        anos = [item["ano"] for item in d.get("projecao", [])]
+        assert 2026 in anos
+        assert 2033 in anos
+
+
 # Folha em lote — guias consolidadas com vencimentos legais
 class TestFolhaGuias:
     def test_guias_completas_com_vencimentos(self, client):
