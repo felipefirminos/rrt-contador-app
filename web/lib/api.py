@@ -80,6 +80,22 @@ def calc_hora_extra(**kwargs) -> dict:
     return _post("/calc/hora-extra", kwargs)
 
 
+def resumo_mei(**kwargs) -> dict:
+    return _post("/calc/mei/resumo", kwargs)
+
+
+def darf_consultar(tributo: str) -> dict:
+    return _post("/calc/darf/consultar", {"texto": tributo})
+
+
+def darf_buscar(texto: str) -> dict:
+    return _post("/calc/darf/buscar", {"texto": texto})
+
+
+def darf_listar_regime(regime: str) -> dict:
+    return _post("/calc/darf/regime", {"regime": regime})
+
+
 def calc_folha_batch(empregados: list[dict[str, Any]], regime: str = "presumido_real",
                      competencia: str | None = None, rat_pct: float = 2.0,
                      fap: float = 1.0) -> dict:

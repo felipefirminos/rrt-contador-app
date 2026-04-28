@@ -35,6 +35,10 @@ from calc_13o import calcular_13o as _calc_13o  # noqa: E402
 from calc_ferias import calcular_ferias as _calc_ferias  # noqa: E402
 from calc_hora_extra import calcular_hora_extra as _calc_he  # noqa: E402
 from calc_hora_extra import calcular_dsr as _calc_dsr  # noqa: E402
+from calc_mei import resumo_mei as _resumo_mei  # noqa: E402
+from calc_darf_codes import consultar_darf as _consultar_darf  # noqa: E402
+from calc_darf_codes import listar_por_regime as _darf_regime  # noqa: E402
+from calc_darf_codes import buscar as _darf_buscar  # noqa: E402
 
 
 def calc_simples_das(
@@ -222,6 +226,31 @@ def calc_hora_extra(
         result["domingos_feriados"] = domingos_feriados
         result["base_legal_dsr"] = "Lei 605/49 + Súmula 172 TST"
     return result
+
+
+def resumo_mei(
+    atividade: str = "comercio",
+    receita_bruta_anual: float = 0.0,
+    meses_atividade: int = 12,
+) -> dict[str, Any]:
+    return _resumo_mei(
+        atividade=atividade,
+        receita_bruta_anual=receita_bruta_anual,
+        meses_atividade=meses_atividade,
+    )
+
+
+def darf_consultar(tributo: str) -> dict[str, Any]:
+    return _consultar_darf(tributo)
+
+
+def darf_listar_regime(regime: str) -> dict[str, Any]:
+    return {"regime": regime, "codigos": _darf_regime(regime)}
+
+
+def darf_buscar(texto: str) -> dict[str, Any]:
+    # _darf_buscar já retorna dict com {busca, total_encontrado, resultados[]}
+    return _darf_buscar(texto)
 
 
 def calc_distribuicao_lucros(
@@ -477,6 +506,68 @@ CALCULATOR_TOOLS = [
         },
     },
     {
+        "name": "resumo_mei",
+        "description": (
+            "Resumo completo do MEI (LC 123/2006 + LC 188/2021): DAS mensal por atividade "
+            "(comércio R$82, serviços R$82, comércio+serviços R$83, caminhoneiro R$195), "
+            "verificação do limite anual (R$81K geral / R$251,6K caminhoneiro — proporcional "
+            "por meses_atividade), situação de enquadramento (OK / EXCESSO_ATE_20PCT → "
+            "desenquadramento prospectivo / EXCESSO_ACIMA_20PCT → retroativo + multa), "
+            "obrigações (DAS-MEI dia 20, DASN-SIMEI até 31/maio, max 1 empregado). "
+            "ATENÇÃO: PLP 108/21 (R$130K) NÃO está em vigor."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "atividade": {"type": "string",
+                              "enum": ["comercio", "servicos", "comercio_servicos", "caminhoneiro"]},
+                "receita_bruta_anual": {"type": "number", "default": 0},
+                "meses_atividade": {"type": "integer", "default": 12},
+            },
+        },
+    },
+    {
+        "name": "darf_consultar",
+        "description": (
+            "Consulta códigos DARF/GPS/DAS por tributo (IRPJ, CSLL, PIS, COFINS, IRRF, "
+            "CSRF, INSS, FGTS, DAS, DAS-MEI, ICMS, ISS, CBS, IBS, DIFAL). Retorna lista "
+            "com código, descrição, regime, periodicidade, vencimento, observações. "
+            "Use SEMPRE que o usuário pedir 'qual o código DARF de X' ou 'como pagar Y'."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"tributo": {"type": "string"}},
+            "required": ["tributo"],
+        },
+    },
+    {
+        "name": "darf_buscar",
+        "description": (
+            "Busca livre nos códigos DARF: por número (ex: '0561'), descrição parcial "
+            "(ex: 'rendimentos do trabalho'), ou tributo. Retorna todos os matches."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"texto": {"type": "string"}},
+            "required": ["texto"],
+        },
+    },
+    {
+        "name": "darf_listar_regime",
+        "description": (
+            "Lista todos os códigos DARF aplicáveis a um regime tributário "
+            "(simples, presumido, lucro_real, mei, dp). Útil para checklist mensal."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "regime": {"type": "string",
+                           "enum": ["simples", "presumido", "lucro_real", "mei", "dp"]},
+            },
+            "required": ["regime"],
+        },
+    },
+    {
         "name": "calc_distribuicao_lucros",
         "description": (
             "Calcula tributação sobre distribuição de lucros (Lei 15.270/2025). "
@@ -662,6 +753,10 @@ TOOL_DISPATCH = {
     "calc_decimo_terceiro": calc_decimo_terceiro,
     "calc_ferias": calc_ferias,
     "calc_hora_extra": calc_hora_extra,
+    "resumo_mei": resumo_mei,
+    "darf_consultar": darf_consultar,
+    "darf_listar_regime": darf_listar_regime,
+    "darf_buscar": darf_buscar,
     "calc_distribuicao_lucros": calc_distribuicao_lucros,
     "calc_irpf_integrado": calc_irpf_integrado,
     "calc_cbs_ibs": calc_cbs_ibs,

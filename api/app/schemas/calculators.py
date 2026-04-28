@@ -265,3 +265,33 @@ class HoraExtraRequest(BaseModel):
     # Para cálculo do DSR opcional
     dias_uteis: Optional[int] = Field(None, ge=0, le=31, description="Para DSR")
     domingos_feriados: Optional[int] = Field(None, ge=0, le=15, description="Para DSR")
+
+
+# ─── MEI (LC 188/2021) ────────────────────────────────────────────
+
+AtividadeMEI = Literal["comercio", "servicos", "comercio_servicos", "caminhoneiro"]
+
+
+class MEIResumoRequest(BaseModel):
+    atividade: AtividadeMEI = Field(
+        "comercio",
+        description=(
+            "'caminhoneiro' aplica LC 188/2021: INSS 12% SM, limite anual R$251,6K"
+        ),
+    )
+    receita_bruta_anual: float = Field(0.0, ge=0)
+    meses_atividade: int = Field(12, ge=1, le=12,
+                                  description="Proporcionaliza limite se < 12")
+
+
+# ─── DARF / GPS / DAS — códigos de receita ───────────────────────
+
+RegimeDarf = Literal["simples", "presumido", "lucro_real", "mei", "dp"]
+
+
+class DarfBuscaRequest(BaseModel):
+    texto: str = Field(..., min_length=2, description="Tributo, descrição ou código")
+
+
+class DarfRegimeRequest(BaseModel):
+    regime: RegimeDarf

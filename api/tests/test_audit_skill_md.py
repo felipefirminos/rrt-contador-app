@@ -205,6 +205,55 @@ class TestIRPFIntegrado:
         assert "ganhos_capital" in r.json()
 
 
+# MEI — LC 123/2006 + LC 188/2021
+class TestMEI:
+    def test_comercio_dentro_do_limite(self, client):
+        r = client.post("/calc/mei/resumo",
+                        json={"atividade": "comercio", "receita_bruta_anual": 60000})
+        d = r.json()
+        assert d["enquadrado"] is True
+        assert d["das_mensal"] == 82.05  # INSS R$81.05 + ICMS R$1
+        assert d["limite_anual"] == 81000.0
+
+    def test_excesso_ate_20pct_desenquadramento_prospectivo(self, client):
+        """Excesso ≤ 20% (R$81K → R$97,2K): desenquadra em janeiro do ano seguinte."""
+        r = client.post("/calc/mei/resumo",
+                        json={"atividade": "comercio", "receita_bruta_anual": 85000})
+        d = r.json()
+        assert d["situacao"] == "EXCESSO_ATE_20PCT"
+        assert d["enquadrado"] is False
+
+    def test_caminhoneiro_limite_majorado(self, client):
+        """LC 188/2021: limite caminhoneiro = R$251.600/ano, INSS 12% SM."""
+        r = client.post("/calc/mei/resumo",
+                        json={"atividade": "caminhoneiro", "receita_bruta_anual": 150000})
+        d = r.json()
+        assert d["enquadrado"] is True
+        assert d["is_caminhoneiro"] is True
+        assert d["das_mensal"] > 190  # 12% de SM ≈ R$194,52
+
+
+# DARF / GPS / DAS códigos
+class TestDarfCodes:
+    def test_consulta_irpj_retorna_codigos(self, client):
+        r = client.post("/calc/darf/consultar", json={"texto": "IRPJ"})
+        d = r.json()
+        assert d["total_encontrado"] >= 1
+        codigos = [item["codigo"] for item in d["resultados"]]
+        assert "2089" in codigos  # IRPJ Lucro Presumido trimestral
+
+    def test_busca_codigo_0561_irrf(self, client):
+        r = client.post("/calc/darf/buscar", json={"texto": "0561"})
+        results = r.json()["resultados"]
+        assert len(results) >= 1
+        # 0561 = IRRF rendimentos do trabalho
+        assert any("0561" == it["codigo"] for it in results)
+
+    def test_lista_regime_simples(self, client):
+        r = client.post("/calc/darf/regime", json={"regime": "simples"})
+        assert len(r.json()["codigos"]) >= 1
+
+
 # 13º — Lei 4.090/1962 (1ª parcela 50% sem deduções, 2ª saldo após INSS+IRRF)
 class TestDecimoTerceiro:
     def test_13o_completo_12_meses(self, client):

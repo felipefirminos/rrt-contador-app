@@ -6,12 +6,15 @@ from app.schemas.calculators import (
     CBSIBSProjecaoRequest,
     CBSIBSRequest,
     ComparativoRegimesRequest,
+    DarfBuscaRequest,
+    DarfRegimeRequest,
     DecimoTerceiroRequest,
     DistribuicaoLucrosRequest,
     FeriasRequest,
     FolhaBatchRequest,
     HoraExtraRequest,
     IRPFRequest,
+    MEIResumoRequest,
     ProlaboreRequest,
     RescisaoRequest,
     SimplesDASRequest,
@@ -115,6 +118,30 @@ def irpf_integrado(req: IRPFRequest) -> dict:
     if "erro" in result:
         raise HTTPException(status_code=422, detail=result["erro"])
     return result
+
+
+@router.post("/mei/resumo")
+def mei_resumo(req: MEIResumoRequest) -> dict:
+    """MEI completo: DAS + faturamento + obrigações + alertas."""
+    result = engine.resumo_mei(**req.model_dump())
+    if "erro" in result:
+        raise HTTPException(status_code=422, detail=result["erro"])
+    return result
+
+
+@router.post("/darf/consultar")
+def darf_consultar(req: DarfBuscaRequest) -> dict:
+    return engine.darf_consultar(req.texto)
+
+
+@router.post("/darf/buscar")
+def darf_buscar(req: DarfBuscaRequest) -> dict:
+    return engine.darf_buscar(req.texto)
+
+
+@router.post("/darf/regime")
+def darf_regime(req: DarfRegimeRequest) -> dict:
+    return engine.darf_listar_regime(req.regime)
 
 
 @router.post("/cbs-ibs")
