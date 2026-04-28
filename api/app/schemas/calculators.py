@@ -228,3 +228,40 @@ class CBSIBSProjecaoRequest(BaseModel):
     regime: RegimeReforma = "lucro_presumido"
     aliquota_icms: float = Field(0.0, ge=0, le=30)
     aliquota_iss: float = Field(0.0, ge=0, le=10)
+
+
+# ─── Trabalhista — 13º, Férias, Hora Extra (Fluxo 3 SKILL.md) ────
+
+
+class DecimoTerceiroRequest(BaseModel):
+    salario_bruto: float = Field(..., gt=0)
+    meses_trabalhados: int = Field(12, ge=1, le=12, description="Avos (proporcional)")
+    num_dependentes: int = Field(0, ge=0)
+    pensao_alimenticia: float = Field(0.0, ge=0)
+
+
+class FeriasRequest(BaseModel):
+    salario: float = Field(..., gt=0)
+    dias_ferias: int = Field(
+        30, ge=0, le=30,
+        description="Dias gozados (mínimo 20 se há abono pecuniário, CLT 143)",
+    )
+    dias_abono: int = Field(
+        0, ge=0, le=10,
+        description="Abono pecuniário — 'venda' de até 10 dias (CLT 143)",
+    )
+    num_dependentes: int = Field(0, ge=0)
+    media_adicionais: float = Field(0.0, ge=0)
+
+
+class HoraExtraRequest(BaseModel):
+    salario: float = Field(..., gt=0)
+    horas_normais: float = Field(..., ge=0, description="HE em dias normais")
+    horas_feriado: float = Field(0.0, ge=0, description="HE em domingos/feriados")
+    adicional_normal: float = Field(50.0, ge=50, description="% mínimo legal 50% (CLT 59)")
+    adicional_feriado: float = Field(100.0, ge=100, description="% mínimo legal 100% (CLT 70)")
+    jornada_mensal: int = Field(220, gt=0, description="220h = 44h/sem; 180h = 36h/sem")
+    comissoes: float = Field(0.0, ge=0)
+    # Para cálculo do DSR opcional
+    dias_uteis: Optional[int] = Field(None, ge=0, le=31, description="Para DSR")
+    domingos_feriados: Optional[int] = Field(None, ge=0, le=15, description="Para DSR")

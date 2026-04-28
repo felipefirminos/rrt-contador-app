@@ -6,8 +6,11 @@ from app.schemas.calculators import (
     CBSIBSProjecaoRequest,
     CBSIBSRequest,
     ComparativoRegimesRequest,
+    DecimoTerceiroRequest,
     DistribuicaoLucrosRequest,
+    FeriasRequest,
     FolhaBatchRequest,
+    HoraExtraRequest,
     IRPFRequest,
     ProlaboreRequest,
     RescisaoRequest,
@@ -67,6 +70,21 @@ def rescisao(req: RescisaoRequest) -> dict:
     if "erro" in result:
         raise HTTPException(status_code=422, detail=result["erro"])
     return result
+
+
+@router.post("/decimo-terceiro")
+def decimo_terceiro(req: DecimoTerceiroRequest) -> dict:
+    return engine.calc_decimo_terceiro(**req.model_dump())
+
+
+@router.post("/ferias")
+def ferias(req: FeriasRequest) -> dict:
+    return engine.calc_ferias(**req.model_dump())
+
+
+@router.post("/hora-extra")
+def hora_extra(req: HoraExtraRequest) -> dict:
+    return engine.calc_hora_extra(**req.model_dump())
 
 
 @router.post("/folha-batch")

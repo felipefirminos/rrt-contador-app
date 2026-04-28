@@ -205,6 +205,78 @@ class TestIRPFIntegrado:
         assert "ganhos_capital" in r.json()
 
 
+# 13º — Lei 4.090/1962 (1ª parcela 50% sem deduções, 2ª saldo após INSS+IRRF)
+class TestDecimoTerceiro:
+    def test_13o_completo_12_meses(self, client):
+        r = client.post("/calc/decimo-terceiro",
+                        json={"salario_bruto": 5000, "meses_trabalhados": 12,
+                              "num_dependentes": 1})
+        d = r.json()
+        # 1ª = 50% do bruto
+        assert d["primeira_parcela"] == 2500.0
+        # FGTS 8% sobre cada parcela
+        assert d["fgts_primeira_parcela"] == 200.0
+        # Líquido = 1ª + 2ª (após INSS+IRRF)
+        assert d["total_liquido"] == d["primeira_parcela"] + d["segunda_parcela"]
+
+    def test_13o_proporcional_avos(self, client):
+        # 7/12 de R$5K = R$2.916,67
+        r = client.post("/calc/decimo-terceiro",
+                        json={"salario_bruto": 5000, "meses_trabalhados": 7})
+        assert r.json()["decimo_terceiro_bruto"] == 2916.67
+
+
+# Férias — CLT 144 + Súmula 386 TST: abono pecuniário ISENTO
+class TestFerias:
+    def test_abono_isento_de_inss_e_irrf(self, client):
+        """Erro recorrente: incluir abono na base do INSS gera autuação."""
+        r = client.post("/calc/ferias", json={
+            "salario": 5000, "dias_ferias": 20, "dias_abono": 10, "num_dependentes": 1,
+        })
+        d = r.json()
+        # base do INSS deve = ferias_gozadas + 1/3 SOMENTE (não inclui abono)
+        assert d["base_inss"] == d["ferias_gozadas"] + d["terco_constitucional"]
+        # Subtotais isentos cobrem abono + 1/3 sobre abono
+        assert d["subtotal_isento"] == d["abono_pecuniario"] + d["terco_abono"]
+
+    def test_ferias_completas_30_dias_sem_abono(self, client):
+        r = client.post("/calc/ferias", json={"salario": 5000, "dias_ferias": 30})
+        d = r.json()
+        assert d["dias_abono"] == 0
+        assert d["abono_pecuniario"] == 0
+        assert d["subtotal_isento"] == 0
+
+
+# Hora extra — CLT Arts. 59 (50%) e 70 (100%)
+class TestHoraExtra:
+    def test_he_50_normal(self, client):
+        r = client.post("/calc/hora-extra", json={
+            "salario": 5000, "horas_normais": 10, "jornada_mensal": 220,
+        })
+        d = r.json()
+        # Hora normal = 5000/220 ≈ 22.73; HE 50% = 22.73 × 1.5 × 10 = 340.91
+        assert d["hora_normal"] == 22.73
+        assert d["valor_he_normal"] == 340.91
+
+    def test_he_100_feriado(self, client):
+        r = client.post("/calc/hora-extra", json={
+            "salario": 5000, "horas_normais": 0, "horas_feriado": 4,
+            "jornada_mensal": 220,
+        })
+        # 22.73 × 2.0 × 4 = 181.82
+        assert r.json()["valor_he_feriado"] == 181.82
+
+    def test_dsr_inclui_quando_dias_informados(self, client):
+        r = client.post("/calc/hora-extra", json={
+            "salario": 5000, "horas_normais": 10, "horas_feriado": 4,
+            "dias_uteis": 22, "domingos_feriados": 8,
+        })
+        d = r.json()
+        assert "dsr" in d
+        assert d["dsr"] > 0
+        assert d["base_legal_dsr"]
+
+
 # CBS / IBS — Reforma Tributária (EC 132/2023 + LC 214/2025)
 class TestCBSIBSReformaTributaria:
     def test_2026_ano_teste_aliquotas_corretas(self, client):

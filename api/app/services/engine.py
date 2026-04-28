@@ -31,6 +31,10 @@ from calc_distribuicao_lucros import calcular_distribuicao as _calc_distribuicao
 from calc_irpf_integrado import calcular_irpf_integrado as _calc_irpf  # noqa: E402
 from calc_cbs_ibs import calcular_cbs_ibs as _calc_cbs_ibs  # noqa: E402
 from calc_cbs_ibs import projecao_transicao as _proj_transicao  # noqa: E402
+from calc_13o import calcular_13o as _calc_13o  # noqa: E402
+from calc_ferias import calcular_ferias as _calc_ferias  # noqa: E402
+from calc_hora_extra import calcular_hora_extra as _calc_he  # noqa: E402
+from calc_hora_extra import calcular_dsr as _calc_dsr  # noqa: E402
 
 
 def calc_simples_das(
@@ -156,6 +160,68 @@ def projecao_cbs_ibs(
         valor_operacao=valor_operacao, regime=regime,
         aliquota_icms=aliquota_icms, aliquota_iss=aliquota_iss,
     )
+
+
+def calc_decimo_terceiro(
+    salario_bruto: float,
+    meses_trabalhados: int = 12,
+    num_dependentes: int = 0,
+    pensao_alimenticia: float = 0.0,
+) -> dict[str, Any]:
+    return _calc_13o(
+        salario_bruto=salario_bruto,
+        meses_trabalhados=meses_trabalhados,
+        num_dependentes=num_dependentes,
+        pensao_alimenticia=pensao_alimenticia,
+    )
+
+
+def calc_ferias(
+    salario: float,
+    dias_ferias: int = 30,
+    dias_abono: int = 0,
+    num_dependentes: int = 0,
+    media_adicionais: float = 0.0,
+) -> dict[str, Any]:
+    return _calc_ferias(
+        salario=salario,
+        dias_ferias=dias_ferias,
+        dias_abono=dias_abono,
+        num_dependentes=num_dependentes,
+        media_adicionais=media_adicionais,
+    )
+
+
+def calc_hora_extra(
+    salario: float,
+    horas_normais: float,
+    horas_feriado: float = 0.0,
+    adicional_normal: float = 50.0,
+    adicional_feriado: float = 100.0,
+    jornada_mensal: int = 220,
+    comissoes: float = 0.0,
+    dias_uteis: int | None = None,
+    domingos_feriados: int | None = None,
+) -> dict[str, Any]:
+    result = _calc_he(
+        salario=salario,
+        horas_normais=horas_normais,
+        horas_feriado=horas_feriado,
+        adicional_normal=adicional_normal,
+        adicional_feriado=adicional_feriado,
+        jornada_mensal=jornada_mensal,
+        comissoes=comissoes,
+    )
+    if dias_uteis is not None and domingos_feriados is not None:
+        result["dsr"] = _calc_dsr(
+            total_variaveis=result["total_variaveis"],
+            dias_uteis=dias_uteis,
+            domingos_feriados=domingos_feriados,
+        )
+        result["dias_uteis"] = dias_uteis
+        result["domingos_feriados"] = domingos_feriados
+        result["base_legal_dsr"] = "Lei 605/49 + Súmula 172 TST"
+    return result
 
 
 def calc_distribuicao_lucros(
@@ -341,6 +407,76 @@ CALCULATOR_TOOLS = [
         },
     },
     {
+        "name": "calc_decimo_terceiro",
+        "description": (
+            "Calcula 13° salário (Lei 4.090/62) com proporcionalidade (avos/12) e ambas "
+            "as parcelas: 1ª (50% sem deduções, paga até 30/nov) e 2ª (saldo após INSS+IRRF, "
+            "até 20/dez). FGTS de 8% incide sobre as duas parcelas. INSS é progressivo "
+            "sobre o 13° BRUTO completo, não sobre cada parcela isoladamente."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "salario_bruto": {"type": "number"},
+                "meses_trabalhados": {"type": "integer", "default": 12,
+                                      "description": "Avos no exercício (1-12)"},
+                "num_dependentes": {"type": "integer", "default": 0},
+                "pensao_alimenticia": {"type": "number", "default": 0},
+            },
+            "required": ["salario_bruto"],
+        },
+    },
+    {
+        "name": "calc_ferias",
+        "description": (
+            "Calcula férias (CLT Arts. 129-153 + CF Art. 7° XVII) com 1/3 constitucional. "
+            "REGRA CRÍTICA (CLT 144 + Súmula 386 TST): abono pecuniário (até 10 dias) + "
+            "1/3 sobre abono são ISENTOS de INSS e IRRF. Apenas férias gozadas + 1/3 "
+            "constitucional sobre elas é tributável. Erro recorrente: incluir abono na "
+            "base do INSS — gera autuação."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "salario": {"type": "number"},
+                "dias_ferias": {"type": "integer", "default": 30,
+                                "description": "20-30 (mín 20 quando há abono)"},
+                "dias_abono": {"type": "integer", "default": 0,
+                               "description": "0-10 (CLT 143)"},
+                "num_dependentes": {"type": "integer", "default": 0},
+                "media_adicionais": {"type": "number", "default": 0},
+            },
+            "required": ["salario"],
+        },
+    },
+    {
+        "name": "calc_hora_extra",
+        "description": (
+            "Calcula horas extras (CLT Arts. 59 e 70). Adicional mínimo: 50% em dias "
+            "normais e 100% em domingos/feriados (CCT pode ser maior). Inclui DSR opcional "
+            "(Lei 605/49 + Súmula 172 TST) sobre verbas variáveis (HE + comissões) — "
+            "informe dias_uteis e domingos_feriados para calcular DSR junto."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "salario": {"type": "number"},
+                "horas_normais": {"type": "number", "description": "HE 50%"},
+                "horas_feriado": {"type": "number", "default": 0, "description": "HE 100%"},
+                "adicional_normal": {"type": "number", "default": 50,
+                                     "description": "% adicional 50% mínimo"},
+                "adicional_feriado": {"type": "number", "default": 100,
+                                      "description": "% adicional 100% mínimo"},
+                "jornada_mensal": {"type": "integer", "default": 220,
+                                   "description": "220h=44h/sem; 180h=36h/sem"},
+                "comissoes": {"type": "number", "default": 0},
+                "dias_uteis": {"type": "integer", "description": "Para DSR (opcional)"},
+                "domingos_feriados": {"type": "integer", "description": "Para DSR (opcional)"},
+            },
+            "required": ["salario", "horas_normais"],
+        },
+    },
+    {
         "name": "calc_distribuicao_lucros",
         "description": (
             "Calcula tributação sobre distribuição de lucros (Lei 15.270/2025). "
@@ -523,6 +659,9 @@ TOOL_DISPATCH = {
     "calc_comparativo": calc_comparativo,
     "calc_rescisao": calc_rescisao,
     "calc_folha_batch": calc_folha_batch,
+    "calc_decimo_terceiro": calc_decimo_terceiro,
+    "calc_ferias": calc_ferias,
+    "calc_hora_extra": calc_hora_extra,
     "calc_distribuicao_lucros": calc_distribuicao_lucros,
     "calc_irpf_integrado": calc_irpf_integrado,
     "calc_cbs_ibs": calc_cbs_ibs,

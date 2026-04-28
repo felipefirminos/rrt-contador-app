@@ -68,6 +68,18 @@ def calc_rescisao(**kwargs) -> dict:
     return _post("/calc/rescisao", kwargs)
 
 
+def calc_decimo_terceiro(**kwargs) -> dict:
+    return _post("/calc/decimo-terceiro", kwargs)
+
+
+def calc_ferias(**kwargs) -> dict:
+    return _post("/calc/ferias", kwargs)
+
+
+def calc_hora_extra(**kwargs) -> dict:
+    return _post("/calc/hora-extra", kwargs)
+
+
 def calc_folha_batch(empregados: list[dict[str, Any]], regime: str = "presumido_real",
                      competencia: str | None = None, rat_pct: float = 2.0,
                      fap: float = 1.0) -> dict:
