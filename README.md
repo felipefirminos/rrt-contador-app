@@ -9,7 +9,7 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
   system prompt e as calculadoras expostas como **tools** — o assistente
   chama as funções reais ao invés de improvisar números
 
-## Calculadoras expostas (v0.6 — 33 ferramentas + parsers)
+## Calculadoras expostas (v0.7 — 33 ferramentas + parsers + histórico/inteligência)
 
 ### Tributário PJ
 | Endpoint | Validação empírica |
@@ -87,13 +87,32 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
 | `POST /calc/gcap/etf-exterior` | Modo GUIDANCE — tratado de bitributação |
 | `POST /calc/carne-leao` | USD 10K × PTAX → R$52.800 → IRRF R$13.611 (27,5%) |
 
+### Histórico + Inteligência (Round J — v0.7)
+
+Primeira camada **stateful** da app: persistência SQLite (`data/rrt.db`) +
+detector de padrões + sugestões proativas (calendário fiscal).
+
+| Endpoint | Use |
+|---|---|
+| `POST /historico/registrar` | Grava interação (CNPJ + texto + tags + classificação + resultado) |
+| `POST /historico/feedback` | Avalia (aprovado / rejeitado / ajustado) — feedback loop |
+| `GET /historico/cliente/{cnpj}` | Lista últimas N interações por CNPJ |
+| `POST /historico/buscar-tag` | Busca por tag (global ou restrita a cliente) |
+| `GET /historico/estatisticas` | Stats: total, taxa aprovação, top tags/fluxos |
+| `POST /historico/padroes` | Detecta sazonalidade (correlação calendário fiscal) + clusters + padrões correção |
+| `POST /historico/sugestoes` | Alertas de prazo + lembretes recorrentes + antecipações |
+
+Schema SQLite com índices em `cnpj`, `timestamp`, `avaliacao`. Tiebreaker
+por `id DESC` (timestamp tem resolução de segundos). Schema migra
+automaticamente na 1ª execução.
+
 ### LLM
 | `POST /chat` + `POST /chat/stream` | 33 ferramentas como Anthropic tools |
 
 ## Qualidade
 
 - **57 scripts upstream passam seus testes próprios** (~1835 asserções) na cópia em `engine/`
-- **105 testes pytest** na API (`api/tests/`) cobrindo:
+- **120 testes pytest** na API (`api/tests/`) cobrindo:
   - Auditoria contra os 7 erros recorrentes do SKILL.md (§1 CPP, §2 INSS 11%, §3 controvérsia Simples, §4 efeito-salto, §5 engenharia, §6 escrituração, §7 transição 2025-2028)
   - Incidências de rescisão (CLT 144 — férias indenizadas isentas)
   - Guias da folha (vencimentos GPS dia 20, FGTS dia 7, DARF 0561)
@@ -111,10 +130,13 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
   - Gcap imóvel (isenção 440K), veículo (particular vs comercial), crypto/ETF (GUIDANCE)
   - Carnê-leão (PTAX, dependentes, faixas IRRF)
   - Parsers: validação multipart, encoding, extensão, payload vazio
+  - **Histórico SQLite** (Round J): registro/feedback/listagem/busca por tag,
+    estatísticas com taxa de aprovação, padrões com sazonalidade, sugestões
+    proativas com calendário fiscal — 15 testes
   - Edge cases: validação Pydantic, propagação de erros do engine
 
 ```bash
-cd api && python3 -m pytest tests/ -v   # 105 passed in 0.22s
+cd api && python3 -m pytest tests/ -v   # 120 passed in 0.46s
 ```
 
 ## Arquitetura

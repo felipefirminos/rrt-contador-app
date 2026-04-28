@@ -60,6 +60,20 @@ from calc_gcap_veiculo import calcular_gcap_veiculo as _calc_gcap_veiculo  # noq
 from calc_gcap_crypto import gerar_checklist_crypto as _gcap_crypto_checklist  # noqa: E402
 from calc_gcap_etf_exterior import gerar_checklist_etf_exterior as _gcap_etf_checklist  # noqa: E402
 from calc_carne_leao import calcular_carne_leao as _calc_carne_leao  # noqa: E402
+from detector_padroes import (  # noqa: E402
+    detectar_sazonalidade as _det_sazonalidade,
+    detectar_padroes_cliente as _det_padroes_cliente,
+    detectar_padroes_correcao as _det_padroes_correcao,
+    detectar_clusters as _det_clusters,
+    gerar_insights as _det_gerar_insights,
+)
+from sugestoes_proativas import (  # noqa: E402
+    gerar_alertas_prazo as _sug_alertas_prazo,
+    gerar_lembretes_recorrentes as _sug_lembretes,
+    gerar_validacoes_reforcadas as _sug_validacoes,
+    gerar_antecipacoes as _sug_antecipacoes,
+    gerar_sugestoes_consolidadas as _sug_consolidadas,
+)
 
 # Recuperação tributária — só importa se a pasta existe
 try:

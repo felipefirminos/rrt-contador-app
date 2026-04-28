@@ -172,6 +172,50 @@ def calc_carne_leao(**kwargs) -> dict:
     return _post("/calc/carne-leao", kwargs)
 
 
+# ─── Histórico (Round J) ──────────────────────────────────────────
+
+
+def historico_registrar(**kwargs) -> dict:
+    return _post("/historico/registrar", kwargs)
+
+
+def historico_feedback(**kwargs) -> dict:
+    return _post("/historico/feedback", kwargs)
+
+
+def historico_listar_cliente(cnpj: str, limite: int = 100) -> dict:
+    try:
+        r = httpx.get(f"{API_BASE}/historico/cliente/{cnpj}",
+                      params={"limite": limite}, timeout=10.0)
+    except httpx.ConnectError as exc:
+        raise APIError(f"Sem conexão com a API em {API_BASE}.") from exc
+    if r.status_code >= 400:
+        raise APIError(f"{r.status_code}: {r.text}")
+    return r.json()
+
+
+def historico_buscar_tag(**kwargs) -> dict:
+    return _post("/historico/buscar-tag", kwargs)
+
+
+def historico_estatisticas(cnpj: str | None = None) -> dict:
+    try:
+        params = {"cnpj": cnpj} if cnpj else {}
+        r = httpx.get(f"{API_BASE}/historico/estatisticas",
+                      params=params, timeout=10.0)
+    except httpx.ConnectError as exc:
+        raise APIError(f"Sem conexão.") from exc
+    return r.json()
+
+
+def historico_padroes(cnpj: str | None = None) -> dict:
+    return _post("/historico/padroes", {"cnpj": cnpj})
+
+
+def historico_sugestoes(**kwargs) -> dict:
+    return _post("/historico/sugestoes", kwargs)
+
+
 def calc_folha_batch(empregados: list[dict[str, Any]], regime: str = "presumido_real",
                      competencia: str | None = None, rat_pct: float = 2.0,
                      fap: float = 1.0) -> dict:
