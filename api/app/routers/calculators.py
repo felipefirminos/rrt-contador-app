@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.schemas.calculators import (
     ComparativoRegimesRequest,
+    DistribuicaoLucrosRequest,
     FolhaBatchRequest,
     ProlaboreRequest,
     RescisaoRequest,
@@ -62,6 +63,14 @@ def folha_batch(req: FolhaBatchRequest) -> dict:
         regime=payload["regime"],
         competencia=payload.get("competencia"),
     )
+    if "erro" in result:
+        raise HTTPException(status_code=422, detail=result["erro"])
+    return result
+
+
+@router.post("/distribuicao-lucros")
+def distribuicao_lucros(req: DistribuicaoLucrosRequest) -> dict:
+    result = engine.calc_distribuicao_lucros(**req.model_dump())
     if "erro" in result:
         raise HTTPException(status_code=422, detail=result["erro"])
     return result

@@ -27,6 +27,7 @@ from calc_prolabore import calcular_prolabore as _calc_prolabore  # noqa: E402
 from calc_comparativo_regimes import comparar_regimes as _comparar_regimes  # noqa: E402
 from calc_rescisao import calcular_rescisao as _calc_rescisao  # noqa: E402
 from calc_folha_batch import processar_folha_batch as _processar_folha_batch  # noqa: E402
+from calc_distribuicao_lucros import calcular_distribuicao as _calc_distribuicao  # noqa: E402
 
 
 def calc_simples_das(
@@ -103,6 +104,24 @@ def calc_folha_batch(
         empregados=empregados,
         regime=regime,
         competencia=competencia,
+    )
+
+
+def calc_distribuicao_lucros(
+    valor_mensal: float,
+    lucro_apurado_disponivel: float | None = None,
+    distribuicao_por_socio: list[float] | None = None,
+    tem_escrituracao_regular: bool = True,
+    lucro_aprovado_ate_2025: bool = False,
+    regime_tributario: str | None = None,
+) -> dict[str, Any]:
+    return _calc_distribuicao(
+        valor_mensal=valor_mensal,
+        lucro_apurado_disponivel=lucro_apurado_disponivel,
+        distribuicao_por_socio=distribuicao_por_socio,
+        tem_escrituracao_regular=tem_escrituracao_regular,
+        lucro_aprovado_ate_2025=lucro_aprovado_ate_2025,
+        regime_tributario=regime_tributario,
     )
 
 
@@ -253,6 +272,37 @@ CALCULATOR_TOOLS = [
         },
     },
     {
+        "name": "calc_distribuicao_lucros",
+        "description": (
+            "Calcula tributação sobre distribuição de lucros (Lei 15.270/2025). "
+            "Regras críticas conforme SKILL.md: (1) IRRF 10% incide sobre VALOR INTEGRAL "
+            "se mensal > R$ 50K/sócio (efeito-salto: R$ 50.001 produz líquido MENOR que "
+            "R$ 50.000); (2) regime_tributario='simples' adiciona alerta da controvérsia "
+            "LC 123 art. 14 vs Lei 15.270/2025 (CF art. 146 III 'd'); (3) "
+            "tem_escrituracao_regular=False → alerta CRÍTICO (RFB pode reclassificar como "
+            "pró-labore: 27,5% IRPF + 11% INSS + retroativos); (4) lucro_aprovado_ate_2025=True "
+            "+ pago até 31/12/2028 → ISENÇÃO TOTAL mantida (regra de transição)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "valor_mensal": {"type": "number", "description": "Valor TOTAL distribuído no mês (R$)"},
+                "lucro_apurado_disponivel": {"type": "number"},
+                "distribuicao_por_socio": {
+                    "type": "array",
+                    "items": {"type": "number"},
+                    "description": "Distribuição desigual; soma deve = valor_mensal",
+                },
+                "tem_escrituracao_regular": {"type": "boolean", "default": True},
+                "lucro_aprovado_ate_2025": {"type": "boolean", "default": False},
+                "regime_tributario": {
+                    "type": "string", "enum": ["simples", "presumido", "lucro_real"],
+                },
+            },
+            "required": ["valor_mensal"],
+        },
+    },
+    {
         "name": "calc_rescisao",
         "description": (
             "Calcula rescisão trabalhista (CLT Arts. 477-484-A, Lei 12.506/2011). "
@@ -296,4 +346,5 @@ TOOL_DISPATCH = {
     "calc_comparativo": calc_comparativo,
     "calc_rescisao": calc_rescisao,
     "calc_folha_batch": calc_folha_batch,
+    "calc_distribuicao_lucros": calc_distribuicao_lucros,
 }

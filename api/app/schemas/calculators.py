@@ -109,3 +109,36 @@ class FolhaBatchRequest(BaseModel):
     competencia: Optional[str] = Field(None, description="Ex: '04/2026' (informativo)")
     rat_pct: float = Field(2.0, ge=0)
     fap: float = Field(1.0, ge=0)
+
+
+# ─── Distribuição de Lucros (Lei 15.270/2025) ────────────────────
+
+RegimeDistribuicao = Literal["simples", "presumido", "lucro_real"]
+
+
+class DistribuicaoLucrosRequest(BaseModel):
+    valor_mensal: float = Field(..., ge=0, description="Valor TOTAL distribuído no mês (R$)")
+    lucro_apurado_disponivel: Optional[float] = Field(
+        None, ge=0,
+        description="Lucro contábil disponível. Se informado, limita a distribuição.",
+    )
+    distribuicao_por_socio: Optional[list[float]] = Field(
+        None, description="Para distribuição desigual; soma deve = valor_mensal",
+    )
+    tem_escrituracao_regular: bool = Field(
+        True, description="Se False, alerta CRÍTICO de reclassificação como pró-labore",
+    )
+    lucro_aprovado_ate_2025: bool = Field(
+        False,
+        description=(
+            "Lucros aprovados até 31/12/2025 + pagos até 31/12/2028 mantêm "
+            "ISENÇÃO TOTAL (regra de transição Lei 15.270/2025)"
+        ),
+    )
+    regime_tributario: Optional[RegimeDistribuicao] = Field(
+        None,
+        description=(
+            "'simples' adiciona alerta da controvérsia LC 123 art. 14 × "
+            "Lei 15.270/2025 (CF art. 146 III 'd')"
+        ),
+    )

@@ -70,6 +70,10 @@ def calc_folha_batch(empregados: list[dict[str, Any]], regime: str = "presumido_
     })
 
 
+def calc_distribuicao_lucros(**kwargs) -> dict:
+    return _post("/calc/distribuicao-lucros", kwargs)
+
+
 def chat(message: str, history: list[dict[str, str]]) -> dict:
     return _post("/chat", {"message": message, "history": history})
 
