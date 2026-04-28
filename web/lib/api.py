@@ -144,6 +144,14 @@ def calc_lucro_real(**kwargs) -> dict:
     return _post("/calc/lucro-real", kwargs)
 
 
+def calc_custo_empregado(**kwargs) -> dict:
+    return _post("/calc/custo-empregado", kwargs)
+
+
+def calc_retencoes_pj(**kwargs) -> dict:
+    return _post("/calc/retencoes-pj", kwargs)
+
+
 def calc_folha_batch(empregados: list[dict[str, Any]], regime: str = "presumido_real",
                      competencia: str | None = None, rat_pct: float = 2.0,
                      fap: float = 1.0) -> dict:

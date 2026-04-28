@@ -205,6 +205,81 @@ class TestIRPFIntegrado:
         assert "ganhos_capital" in r.json()
 
 
+# Custo CLT — Lei 8.212/91 + LC 123/2006 (regimes diferenciados)
+class TestCustoEmpregado:
+    def test_presumido_real_encargos_plenos(self, client):
+        """R$3K Presumido: INSS 600 + RAT 60 + Terc 174 = 834 encargos patronais."""
+        r = client.post("/calc/custo-empregado",
+                        json={"salario_bruto": 3000, "regime": "presumido_real"})
+        d = r.json()
+        assert d["inss_patronal"] == 600.0      # 20% × 3000
+        assert d["rat_fap"] == 60.0             # 2% × 1.0 × 3000
+        assert d["terceiros"] == 174.0          # 5.8% × 3000
+        assert d["total_encargos_patronais"] == 834.0
+
+    def test_simples_i_iii_v_zero_encargos(self, client):
+        """SKILL.md §1: Simples I/III/V — CPP no DAS, sem patronal/RAT/Terceiros."""
+        r = client.post("/calc/custo-empregado",
+                        json={"salario_bruto": 3000, "regime": "simples_i_iii_v"})
+        d = r.json()
+        assert d["total_encargos_patronais"] == 0.0
+        assert d["fgts"] == 240.0  # FGTS 8% mantido
+
+    def test_simples_iv_inss_separado_terceiros_dispensado(self, client):
+        """LC 123/06 §3: Anexo IV recolhe INSS+RAT, Terceiros DISPENSADOS."""
+        r = client.post("/calc/custo-empregado",
+                        json={"salario_bruto": 3000, "regime": "simples_iv"})
+        d = r.json()
+        assert d["inss_patronal"] == 600.0
+        assert d["rat_fap"] == 60.0
+        assert d["terceiros"] == 0.0  # Dispensado!
+
+
+# Retenções PJ→PJ — IN RFB 1.234/2012 + Art. 30 Lei 10.833/2003
+class TestRetencoesPJ:
+    def test_profissional_irrf_csrf_devida(self, client):
+        """R$10K profissional: IRRF 1,5% = R$150; CSRF 4,65% = R$465."""
+        r = client.post("/calc/retencoes-pj",
+                        json={"valor_nota": 10000, "tipo_servico": "profissional"})
+        d = r.json()
+        assert d["irrf_valor"] == 150.0
+        assert d["csrf_total"] == 465.0
+
+    def test_simples_nao_retem(self, client):
+        """SKILL.md Fluxo 9: Simples NÃO retém IRRF nem CSRF."""
+        r = client.post("/calc/retencoes-pj", json={
+            "valor_nota": 10000, "tipo_servico": "profissional",
+            "prestador_simples": True,
+        })
+        d = r.json()
+        assert d["irrf_valor"] == 0.0
+        assert d["csrf_dispensada"] is True
+
+    def test_publicidade_simples_RETEM_irrf(self, client):
+        """Exceção: publicidade RETÉM IRRF mesmo em Simples."""
+        r = client.post("/calc/retencoes-pj", json={
+            "valor_nota": 10000, "tipo_servico": "publicidade",
+            "prestador_simples": True,
+        })
+        assert r.json()["irrf_valor"] == 150.0
+
+    def test_cessao_mao_obra_inss_11pct(self, client):
+        """Art. 31 Lei 8.212/91: cessão MO retém INSS 11%."""
+        r = client.post("/calc/retencoes-pj", json={
+            "valor_nota": 10000, "tipo_servico": "cessao_mao_obra",
+            "reter_inss": True,
+        })
+        d = r.json()
+        assert d["inss_retido"] == 1100.0
+        assert d["irrf_valor"] == 100.0  # 1% (não 1,5%)
+
+    def test_csrf_dispensada_abaixo_215(self, client):
+        """CSRF dispensada se nota ≤ R$215,05 (mínimo DARF)."""
+        r = client.post("/calc/retencoes-pj",
+                        json={"valor_nota": 200, "tipo_servico": "profissional"})
+        assert r.json()["csrf_dispensada"] is True
+
+
 # Lucro Presumido — Lei 9.249/95 + Lei 9.718/98
 class TestLucroPresumido:
     def test_servicos_500k_carga_correta(self, client):

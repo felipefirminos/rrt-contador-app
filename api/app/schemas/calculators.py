@@ -402,6 +402,45 @@ class Tema779Request(BaseModel):
     insumos: list[InsumoTema779] = Field(..., min_length=1)
 
 
+RegimeCustoEmpregado = Literal["presumido_real", "simples_i_iii_v", "simples_iv"]
+
+
+class CustoEmpregadoRequest(BaseModel):
+    salario_bruto: float = Field(..., gt=0)
+    regime: RegimeCustoEmpregado = "presumido_real"
+    rat_pct: float = Field(2.0, ge=0, le=3, description="1% leve, 2% médio, 3% grave")
+    fap: float = Field(1.0, ge=0.5, le=2.0, description="Fator Acidentário 0,5-2,0")
+    terceiros_pct: float = Field(5.8, ge=0, le=10, description="Sistema S (default 5,8%)")
+    vale_transporte: float = Field(0.0, ge=0)
+    vale_refeicao: float = Field(0.0, ge=0)
+    plano_saude: float = Field(0.0, ge=0)
+    outros_beneficios: float = Field(0.0, ge=0)
+
+
+TipoServicoPJ = Literal[
+    "profissional", "limpeza", "vigilancia", "conservacao",
+    "cessao_mao_obra", "publicidade", "comissao",
+]
+
+
+class RetencoesPJRequest(BaseModel):
+    valor_nota: float = Field(..., gt=0)
+    tipo_servico: TipoServicoPJ = "profissional"
+    prestador_simples: bool = Field(
+        False,
+        description="Simples NÃO retém IRRF nem CSRF — exceção: publicidade RETÉM IRRF",
+    )
+    reter_inss: bool = Field(
+        False,
+        description="True apenas para cessão_mao_obra (Art. 31 Lei 8.212/91, INSS 11%)",
+    )
+    reter_iss: bool = False
+    aliquota_iss: float = Field(
+        0.0, ge=0, le=10,
+        description="Em % (ex: 5 para 5%); auto-converte se já estiver em decimal",
+    )
+
+
 class LucroPresumidoRequest(BaseModel):
     atividade: Literal[
         "comercio", "industria", "servicos", "transporte_cargas",

@@ -17,8 +17,10 @@ from app.schemas.calculators import (
     ICMSSTRequest,
     IRPFRequest,
     ISSRequest,
+    CustoEmpregadoRequest,
     LucroPresumidoRequest,
     LucroRealRequest,
+    RetencoesPJRequest,
     MEIResumoRequest,
     MunicipioBuscaRequest,
     PerDcompMinutaRequest,
@@ -152,6 +154,18 @@ def darf_buscar(req: DarfBuscaRequest) -> dict:
 @router.post("/darf/regime")
 def darf_regime(req: DarfRegimeRequest) -> dict:
     return engine.darf_listar_regime(req.regime)
+
+
+@router.post("/custo-empregado")
+def custo_empregado(req: CustoEmpregadoRequest) -> dict:
+    """Custo total mensal/anual CLT por regime tributário."""
+    return engine.calc_custo_empregado(**req.model_dump())
+
+
+@router.post("/retencoes-pj")
+def retencoes_pj(req: RetencoesPJRequest) -> dict:
+    """Retenções sobre nota PJ→PJ: IRRF, CSRF, INSS (cessão), ISS."""
+    return engine.calc_retencoes_pj(**req.model_dump())
 
 
 @router.post("/lucro-presumido")

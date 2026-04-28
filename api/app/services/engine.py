@@ -53,6 +53,8 @@ from calc_iss import buscar_municipio as _buscar_municipio  # noqa: E402
 from calc_iss import consultar_municipio as _consultar_municipio  # noqa: E402
 from calc_presumido import calcular_presumido as _calc_presumido  # noqa: E402
 from calc_lucro_real import calcular_lucro_real as _calc_lucro_real  # noqa: E402
+from calc_custo_empregado import calcular_custo_empregado as _calc_custo_emp  # noqa: E402
+from calc_retencoes_pj import calcular_retencoes_pj as _calc_retencoes  # noqa: E402
 
 # Recuperação tributária — só importa se a pasta existe
 try:
@@ -484,6 +486,41 @@ def buscar_municipio_iss(texto: str) -> dict[str, Any]:
             {"municipio": m[0], "score": m[1]} for m in matches[:10]
         ],
     }
+
+
+def calc_custo_empregado(
+    salario_bruto: float,
+    regime: str = "presumido_real",
+    rat_pct: float = 2.0,
+    fap: float = 1.0,
+    terceiros_pct: float = 5.8,
+    vale_transporte: float = 0.0,
+    vale_refeicao: float = 0.0,
+    plano_saude: float = 0.0,
+    outros_beneficios: float = 0.0,
+) -> dict[str, Any]:
+    return _calc_custo_emp(
+        salario_bruto=salario_bruto, regime=regime,
+        rat_pct=rat_pct, fap=fap, terceiros_pct=terceiros_pct,
+        vale_transporte=vale_transporte, vale_refeicao=vale_refeicao,
+        plano_saude=plano_saude, outros_beneficios=outros_beneficios,
+    )
+
+
+def calc_retencoes_pj(
+    valor_nota: float,
+    tipo_servico: str = "profissional",
+    prestador_simples: bool = False,
+    reter_inss: bool = False,
+    reter_iss: bool = False,
+    aliquota_iss: float = 0.0,
+) -> dict[str, Any]:
+    return _calc_retencoes(
+        valor_nota=valor_nota, tipo_servico=tipo_servico,
+        prestador_simples=prestador_simples,
+        reter_inss=reter_inss, reter_iss=reter_iss,
+        aliquota_iss=aliquota_iss,
+    )
 
 
 def calc_lucro_presumido(
@@ -1062,6 +1099,62 @@ CALCULATOR_TOOLS = [
         },
     },
     {
+        "name": "calc_custo_empregado",
+        "description": (
+            "Calcula custo TOTAL mensal/anual de empregado CLT (Lei 8.212/91 + LC "
+            "123/2006). Encargos variam por regime: presumido_real (INSS patronal "
+            "20% + RAT×FAP + Terceiros 5,8% + FGTS 8%); simples_i_iii_v (CPP no DAS, "
+            "apenas FGTS); simples_iv (INSS 20% + RAT×FAP + FGTS, Terceiros dispensado "
+            "para todo Simples). Provisões mensais: 13° (1/12) + férias+1/3 (1/9). "
+            "Benefícios opcionais: VT, VR/VA, plano de saúde, outros CCT."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "salario_bruto": {"type": "number"},
+                "regime": {"type": "string",
+                           "enum": ["presumido_real", "simples_i_iii_v", "simples_iv"]},
+                "rat_pct": {"type": "number", "default": 2,
+                            "description": "1/2/3 (leve/médio/grave)"},
+                "fap": {"type": "number", "default": 1.0,
+                        "description": "Fator Acidentário 0,5-2,0"},
+                "terceiros_pct": {"type": "number", "default": 5.8},
+                "vale_transporte": {"type": "number", "default": 0},
+                "vale_refeicao": {"type": "number", "default": 0},
+                "plano_saude": {"type": "number", "default": 0},
+                "outros_beneficios": {"type": "number", "default": 0},
+            },
+            "required": ["salario_bruto"],
+        },
+    },
+    {
+        "name": "calc_retencoes_pj",
+        "description": (
+            "Calcula retenções sobre nota PJ→PJ (IN RFB 1.234/2012 + Art. 30 Lei "
+            "10.833/2003 + Art. 31 Lei 8.212/91). Tipos: profissional (IRRF 1,5% + "
+            "CSRF 4,65%), limpeza/vigilância/conservação (IRRF 1% + CSRF), cessao_mao_obra "
+            "(IRRF 1% + CSRF + INSS 11% retido), publicidade (IRRF 1,5% — RETÉM mesmo "
+            "Simples), comissao (IRRF 1,5%). REGRAS: Simples NÃO retém IRRF (exceto "
+            "publicidade) NEM CSRF. CSRF DISPENSADA se valor_nota ≤ R$215,05."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "valor_nota": {"type": "number"},
+                "tipo_servico": {"type": "string",
+                    "enum": ["profissional", "limpeza", "vigilancia", "conservacao",
+                             "cessao_mao_obra", "publicidade", "comissao"]},
+                "prestador_simples": {"type": "boolean", "default": False},
+                "reter_inss": {"type": "boolean", "default": False,
+                               "description": "Apenas cessao_mao_obra"},
+                "reter_iss": {"type": "boolean", "default": False},
+                "aliquota_iss": {"type": "number", "default": 0,
+                                  "description": "Em % (ex: 5 para 5%)"},
+            },
+            "required": ["valor_nota"],
+        },
+    },
+    {
         "name": "calc_lucro_presumido",
         "description": (
             "Calcula IRPJ + CSLL + PIS + COFINS no Lucro Presumido (Lei 9.249/95 + "
@@ -1409,6 +1502,8 @@ TOOL_DISPATCH = {
     "buscar_municipio_iss": buscar_municipio_iss,
     "calc_lucro_presumido": calc_lucro_presumido,
     "calc_lucro_real": calc_lucro_real,
+    "calc_custo_empregado": calc_custo_empregado,
+    "calc_retencoes_pj": calc_retencoes_pj,
     "calc_distribuicao_lucros": calc_distribuicao_lucros,
     "calc_irpf_integrado": calc_irpf_integrado,
     "calc_cbs_ibs": calc_cbs_ibs,
