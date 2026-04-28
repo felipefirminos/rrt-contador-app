@@ -9,7 +9,7 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
   system prompt e as calculadoras expostas como **tools** — o assistente
   chama as funções reais ao invés de improvisar números
 
-## Calculadoras expostas (v0.4 — 14 ferramentas)
+## Calculadoras expostas (v0.5 — 22 ferramentas + parsers)
 
 ### Tributário PJ
 | Endpoint | Validação empírica |
@@ -38,13 +38,41 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
 ### Pessoa Física
 | `POST /calc/irpf` | R$8K CLT + 1 dep + R$5K saúde → ZERADO |
 
+### Trabalhista — calcs adicionais
+| Endpoint | Validação empírica |
+|---|---|
+| `POST /calc/decimo-terceiro` | R$5K × 12 → 1ª R$2.500 + 2ª R$1.998 + FGTS R$400 |
+| `POST /calc/ferias` | 20+10 abono → base_INSS = férias gozadas+1/3 (CLT 144) |
+| `POST /calc/hora-extra` | R$5K/220h → hora R$22,73; HE 50% × 10h = R$340,91 |
+
+### ICMS / ISS
+| Endpoint | Validação empírica |
+|---|---|
+| `POST /calc/icms/difal` | R$1K destino 17% inter 12% → R$50; com frete R$200 → R$60 |
+| `POST /calc/icms/st` | R$500 MVA 40% → BC R$700, próprio R$60, ST R$66 |
+| `POST /calc/iss` | SP R$10K → R$500 (5%); Simples → 0 + base; não-mapeado → 5% |
+| `POST /calc/iss/buscar-municipio` | Fuzzy search em 5K+ municípios |
+
+### Recuperação tributária — adicionais
+| Endpoint | Validação empírica |
+|---|---|
+| `POST /calc/recuperacao/tema-779` | MATERIA_PRIMA_DIRETA → FORTE 9,25%; MAO_DE_OBRA_PF → 0 (vedação) |
+| `POST /calc/recuperacao/perdcomp-minuta` | Substitui placeholders → markdown 5K+ chars pronto p/ revisão |
+
+### Parsers (multipart upload)
+| Endpoint | Use |
+|---|---|
+| `POST /parser/das-pdf` | Guia DAS única — extrai tipo, CNPJ, competência, valores, atraso |
+| `POST /parser/das-pdf-batch` | Até 50 guias (carteira inteira no fechamento mensal) |
+| `POST /parser/xml-fiscal` | NF-e / NFC-e / NFS-e — detecta tipo, extrai estrutura completa |
+
 ### LLM
-| `POST /chat` + `POST /chat/stream` | 14 ferramentas como Anthropic tools |
+| `POST /chat` + `POST /chat/stream` | 22 ferramentas como Anthropic tools |
 
 ## Qualidade
 
 - **57 scripts upstream passam seus testes próprios** (~1835 asserções) na cópia em `engine/`
-- **57 testes pytest** na API (`api/tests/`) cobrindo:
+- **80 testes pytest** na API (`api/tests/`) cobrindo:
   - Auditoria contra os 7 erros recorrentes do SKILL.md (§1 CPP, §2 INSS 11%, §3 controvérsia Simples, §4 efeito-salto, §5 engenharia, §6 escrituração, §7 transição 2025-2028)
   - Incidências de rescisão (CLT 144 — férias indenizadas isentas)
   - Guias da folha (vencimentos GPS dia 20, FGTS dia 7, DARF 0561)
@@ -52,11 +80,14 @@ App interno da RRT Contabilidade — evolução da skill `rrt-group-contador v6.
   - CBS/IBS (alíquotas 2026/2033, setores específicos, projeção)
   - 13º (1ª/2ª parcelas, FGTS), Férias (abono isento — CLT 144), HE (50/100%, DSR)
   - MEI (R$81K, excesso 20%, caminhoneiro), DARF (códigos por tributo/regime/busca)
-  - Recuperação tributária (Tema 69 modulação, prescrição quinquenal)
+  - Recuperação tributária: Tema 69 (modulação STF, alíquotas LR/LP), prescrição
+    quinquenal, Tema 779 (4 forças por categoria), PER/DCOMP (placeholders)
+  - DIFAL (com frete), ICMS-ST (cálculo + restituição), ISS (SP/Simples/não-mapeado)
+  - Parsers: validação multipart, encoding, extensão, payload vazio
   - Edge cases: validação Pydantic, propagação de erros do engine
 
 ```bash
-cd api && python3 -m pytest tests/ -v   # 57 passed in 0.16s
+cd api && python3 -m pytest tests/ -v   # 80 passed in 0.20s
 ```
 
 ## Arquitetura

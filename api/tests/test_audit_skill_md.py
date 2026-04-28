@@ -205,6 +205,41 @@ class TestIRPFIntegrado:
         assert "ganhos_capital" in r.json()
 
 
+# Parsers — DAS PDF + XML fiscais
+class TestParsers:
+    def test_das_pdf_sem_arquivo_422(self, client):
+        r = client.post("/parser/das-pdf")
+        assert r.status_code == 422
+
+    def test_das_pdf_extensao_errada_400(self, client):
+        r = client.post("/parser/das-pdf",
+                        files={"file": ("foo.txt", b"not a pdf", "text/plain")})
+        assert r.status_code == 400
+
+    def test_das_pdf_vazio_400(self, client):
+        r = client.post("/parser/das-pdf",
+                        files={"file": ("empty.pdf", b"", "application/pdf")})
+        assert r.status_code == 400
+
+    def test_xml_fiscal_sem_arquivo_422(self, client):
+        r = client.post("/parser/xml-fiscal")
+        assert r.status_code == 422
+
+    def test_xml_fiscal_xml_nao_reconhecido(self, client):
+        """XML válido mas não-fiscal: HTTP 200 com sucesso=False (resposta útil)."""
+        r = client.post("/parser/xml-fiscal", files={
+            "file": ("foo.xml", b"<?xml version=\"1.0\"?><nada/>", "application/xml"),
+        })
+        assert r.status_code == 200
+        assert r.json()["sucesso"] is False
+
+    def test_xml_fiscal_extensao_errada_400(self, client):
+        r = client.post("/parser/xml-fiscal", files={
+            "file": ("foo.txt", b"<?xml version=\"1.0\"?>", "text/plain"),
+        })
+        assert r.status_code == 400
+
+
 # Tema 779 STJ — conceito amplo de insumo (REsp 1.221.170/PR)
 class TestTema779:
     def test_materia_prima_direta_forte(self, client):
