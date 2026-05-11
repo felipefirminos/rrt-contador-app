@@ -1,13 +1,13 @@
 {
   "descricao": "Códigos de rendimentos isentos e não tributáveis — DIRPF exercício 2026 (AC 2025)",
-  "base_legal": "RIR/2018 Art. 35 a 39; Lei 12.431/2011 Art. 3°; Lei 15.270/2025; IN RFB 2.312/2026",
-  "nota": "Usar esta tabela para classificar CORRETAMENTE rendimentos isentos no dossiê IRPF. CRI/CRA/LCI/LCA NÃO são poupança (código 12).",
+  "base_legal": "RIR/2018 Art. 35 a 39; Lei 12.431/2011 Art. 3°; Lei 15.270/2025; IN RFB 2.312/2026; Resolução CGSN 140/2018 Art. 145",
+  "nota": "Usar esta tabela para classificar CORRETAMENTE rendimentos isentos no dossiê IRPF. CRI/CRA/LCI/LCA NÃO são poupança (código 12). Lucros do Simples (código 13) seguem regra ESPECÍFICA do Art. 145 da Res. CGSN 140/2018 — ver calc_rendimentos_isentos_simples.py.",
   "vigencia_inicio": "2026-01-01",
   "vigencia_ate": "2026-12-31",
   "codigos": [
     {
       "codigo": "01",
-      "descricao": "Bolsa de estudo e pesquisa (Lei 9.250/95 Art. 26)",
+      "descricao": "Bolsa de estudo e pesquisa (Lei 9.250/1995 Art. 26)",
       "exemplos": ["Bolsa CAPES", "Bolsa CNPq", "Bolsa FAPESP"],
       "observacao": "Somente bolsas sem contrapartida de serviços"
     },
@@ -25,9 +25,9 @@
     },
     {
       "codigo": "05",
-      "descricao": "Lucros e dividendos recebidos (isentos até limite Lei 15.270/2025)",
-      "exemplos": ["Dividendos de ações", "Lucros distribuídos por PJ"],
-      "observacao": "Até R$ 50.000/mês isentos (Lei 15.270/2025). Acima: tributação exclusiva 10%"
+      "descricao": "Lucros e dividendos recebidos (isentos até limite Lei 15.270/2025 + Art. 145 CGSN 140/2018)",
+      "exemplos": ["Dividendos de ações", "Lucros distribuídos por PJ NÃO optante pelo Simples"],
+      "observacao": "Para PJ FORA do Simples Nacional: até R$ 50.000/mês isentos (Lei 15.270/2025); acima desse valor, IRRF 10% sobre o TOTAL distribuído no mês. Para PJ optante pelo Simples Nacional, use o CÓDIGO 13 (regra do Art. 145 CGSN 140/2018)."
     },
     {
       "codigo": "06",
@@ -55,15 +55,16 @@
     },
     {
       "codigo": "13",
-      "descricao": "Rendimentos de sócio ou titular de ME/EPP optante pelo Simples Nacional",
-      "exemplos": ["Distribuição de lucros Simples Nacional"],
-      "observacao": "Isento até o limite de presunção"
+      "descricao": "Lucros e dividendos recebidos de ME/EPP optante pelo Simples Nacional (Art. 145 Res. CGSN 140/2018)",
+      "exemplos": ["Distribuição de lucros de ME/EPP do Simples Nacional"],
+      "observacao": "REGRA ESPECÍFICA — duas formas de apuração do limite isento: (1) FORMA 1, §2° — COM escrituração contábil regular: distribui-se até o LUCRO LÍQUIDO do exercício (DRE). (2) FORMA 2, §1° — SEM escrituração: limite = (Receita Bruta × % presunção Art. 15 Lei 9.249/1995) − IRPJ devido no Simples no período. O percentual varia por atividade: 1,6% combustíveis; 8% comércio/indústria/transp. cargas/hospitalares; 16% transp. passageiros/inst. financeiras; 32% serviços em geral/profissionais/intermediação. ATENÇÃO: subtrai-se o IRPJ devido pela EMPRESA no Simples (parte do DAS), NÃO o IRPF do sócio. Para cálculo automático, use scripts/calc_rendimentos_isentos_simples.py.",
+      "base_legal_complementar": "Resolução CGSN 140/2018 Art. 145, §§ 1° e 2°; Lei 9.249/1995 Art. 15; LC 123/2006 Art. 14"
     },
     {
       "codigo": "18",
       "descricao": "Ganho de capital na alienação de imóvel residencial único (até R$ 440.000)",
       "exemplos": ["Venda de único imóvel até R$ 440.000"],
-      "observacao": "Isenção do art. 23 da Lei 9.250/95"
+      "observacao": "Isenção do art. 23 da Lei 9.250/1995"
     },
     {
       "codigo": "26",
@@ -76,7 +77,8 @@
     "CRI e CRA → código 06, NUNCA código 12",
     "LCI e LCA → código 08, NUNCA código 12",
     "Poupança → código 12, SOMENTE caderneta de poupança",
-    "Dividendos → código 05 (observar limite Lei 15.270/2025)",
+    "Dividendos de PJ NÃO-Simples → código 05 (observar Lei 15.270/2025)",
+    "Lucros de PJ DO SIMPLES → código 13 (Art. 145 CGSN 140/2018) — usar calc_rendimentos_isentos_simples.py para apurar limite",
     "Se rendimento isento não se encaixa em nenhum código específico → código 26 (Outros)",
     "Sempre validar base legal antes de classificar como isento"
   ]
