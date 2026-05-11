@@ -1,0 +1,317 @@
+{
+  "_meta": {
+    "descricao": "Registro central de normas-base do skill rrt-group-contador. Cada entrada catalisa: identificação canônica, URL oficial, vigência, scripts dependentes e revisor. Auditável pelo script snapshot_normas.py.",
+    "versao_registry": "1.0.0",
+    "criado_em": "2026-05-11",
+    "criado_por": "felipe.firmino@rrtgroup.com.br",
+    "regra_de_atualizacao": "Apenas via PR com 2 commits assinados (dual-control). Mensagem do commit deve conter linha 'Source: <url> (data)'. Ver pre_merge_check.sh.",
+    "ultimo_snapshot": null,
+    "hash_algoritmo": "sha256",
+    "nota_importante": "Os campos `hash_sha256_*` ficam null até o primeiro snapshot bem-sucedido. Eles NÃO devem ser editados manualmente — são preenchidos pelo snapshot_normas.py após download e conferência."
+  },
+  "normas": {
+    "lei_9249_1995_art10": {
+      "id": "lei_9249_1995_art10",
+      "norma_curta": "Lei 9.249/1995, Art. 10",
+      "norma_completa": "Lei nº 9.249, de 26 de dezembro de 1995, Art. 10",
+      "ementa": "Isenção de IRPF sobre lucros e dividendos distribuídos por pessoa jurídica.",
+      "tema": "Isenção genérica de dividendos no IRPF",
+      "url_oficial": "https://www.planalto.gov.br/ccivil_03/leis/l9249.htm",
+      "url_cache_econet": null,
+      "vigencia_inicio": "1996-01-01",
+      "vigencia_ate": "permanente",
+      "data_captura": null,
+      "hash_sha256_html": null,
+      "hash_sha256_pdf": null,
+      "revisado_por": null,
+      "ultima_verificacao_externa": null,
+      "scripts_que_dependem": [
+        "calc_distribuicao_lucros.py",
+        "calc_rendimentos_isentos_simples.py"
+      ],
+      "tabelas_que_dependem": [
+        "codigos_rendimentos_isentos.json"
+      ],
+      "observacoes": "Parcialmente alterada pela Lei 15.270/2025 (IRRF 10% acima de R$ 50K/mês). A isenção persiste no ajuste anual, dentro do limite."
+    },
+    "lei_9249_1995_art15": {
+      "id": "lei_9249_1995_art15",
+      "norma_curta": "Lei 9.249/1995, Art. 15",
+      "norma_completa": "Lei nº 9.249, de 26 de dezembro de 1995, Art. 15",
+      "ementa": "Percentuais de presunção de lucro para apuração de IRPJ no Lucro Presumido (1,6%, 8%, 16%, 32%) por atividade.",
+      "tema": "Presunção de lucro — base do Art. 145 §1° da Res. CGSN 140/2018",
+      "url_oficial": "https://www.planalto.gov.br/ccivil_03/leis/l9249.htm#art15",
+      "url_cache_econet": null,
+      "vigencia_inicio": "1996-01-01",
+      "vigencia_ate": "permanente",
+      "data_captura": null,
+      "hash_sha256_html": null,
+      "hash_sha256_pdf": null,
+      "revisado_por": null,
+      "ultima_verificacao_externa": null,
+      "scripts_que_dependem": [
+        "calc_presumido.py",
+        "calc_comparativo_regimes.py",
+        "calc_rendimentos_isentos_simples.py"
+      ],
+      "tabelas_que_dependem": [
+        "lucro_presumido.json"
+      ],
+      "observacoes": "Tabela imutável por força de lei. Atualizar APENAS por alteração legislativa expressa."
+    },
+    "lc_123_2006_art13_14_18": {
+      "id": "lc_123_2006_art13_14_18",
+      "norma_curta": "LC 123/2006, Arts. 13, 14 e 18",
+      "norma_completa": "Lei Complementar nº 123, de 14 de dezembro de 2006",
+      "ementa": "Institui o Estatuto Nacional da Microempresa e da Empresa de Pequeno Porte e o Simples Nacional. Art. 13 (tributos unificados); Art. 14 (isenção lucros distribuídos); Art. 18 (Anexos I-V e alíquotas).",
+      "tema": "Simples Nacional — base estatutária",
+      "url_oficial": "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp123.htm",
+      "url_cache_econet": null,
+      "vigencia_inicio": "2007-07-01",
+      "vigencia_ate": "permanente",
+      "data_captura": null,
+      "hash_sha256_html": null,
+      "hash_sha256_pdf": null,
+      "revisado_por": null,
+      "ultima_verificacao_externa": null,
+      "scripts_que_dependem": [
+        "calc_simples.py",
+        "calc_comparativo_regimes.py",
+        "calc_distribuicao_lucros.py",
+        "calc_rendimentos_isentos_simples.py"
+      ],
+      "tabelas_que_dependem": [
+        "simples_nacional.json"
+      ],
+      "observacoes": "Art. 14 está em controvérsia frente à Lei 15.270/2025 (CF Art. 146, III, 'd' — reserva de lei complementar)."
+    },
+    "res_cgsn_140_2018_art145": {
+      "id": "res_cgsn_140_2018_art145",
+      "norma_curta": "Res. CGSN 140/2018, Art. 145",
+      "norma_completa": "Resolução do Comitê Gestor do Simples Nacional nº 140, de 22 de maio de 2018, Art. 145",
+      "ementa": "Isenção de IRPF sobre lucros distribuídos pelo Simples Nacional. §1° estabelece limite presumido (% Art. 15 Lei 9.249/95 − IRPJ devido); §2° afasta o limite quando há escrituração contábil regular.",
+      "tema": "Limite isento IRPF do sócio do Simples — Forma 1 (§2°) e Forma 2 (§1°)",
+      "url_oficial": "http://normas.receita.fazenda.gov.br/sijut2consulta/link.action?visao=anotado&idAto=92278",
+      "url_cache_econet": "https://www.econeteditora.com.br//bdi/res/rs18/res_cgsn_140_2018.php#art145",
+      "vigencia_inicio": "2018-05-22",
+      "vigencia_ate": "permanente",
+      "data_captura": null,
+      "hash_sha256_html": null,
+      "hash_sha256_pdf": null,
+      "revisado_por": "felipe.firmino@rrtgroup.com.br",
+      "ultima_verificacao_externa": null,
+      "scripts_que_dependem": [
+        "calc_rendimentos_isentos_simples.py"
+      ],
+      "tabelas_que_dependem": [
+        "codigos_rendimentos_isentos.json"
+      ],
+      "observacoes": "Incidente Felipe (2026-05-11): fórmula informal 'Faturamento × 32% − IRPF' violava esta norma em 3 pontos. Corrigida em v6.2 com calc_rendimentos_isentos_simples.py."
+    },
+    "in_rfb_971_2009": {
+      "id": "in_rfb_971_2009",
+      "norma_curta": "IN RFB 971/2009",
+      "norma_completa": "Instrução Normativa RFB nº 971, de 13 de novembro de 2009",
+      "ementa": "Normas gerais de tributação previdenciária e arrecadação. Art. 65 define contribuinte individual (sócio) com alíquota 11% sobre min(base, teto).",
+      "tema": "INSS sócio (contribuinte individual) — 11% fixo",
+      "url_oficial": "http://normas.receita.fazenda.gov.br/sijut2consulta/link.action?idAto=15937",
+      "url_cache_econet": null,
+      "vigencia_inicio": "2009-11-17",
+      "vigencia_ate": "permanente",
+      "data_captura": null,
+      "hash_sha256_html": null,
+      "hash_sha256_pdf": null,
+      "revisado_por": null,
+      "ultima_verificacao_externa": null,
+      "scripts_que_dependem": [
+        "calc_inss.py",
+        "calc_prolabore.py",
+        "calc_folha.py"
+      ],
+      "tabelas_que_dependem": [
+        "inss_2026.json"
+      ],
+      "observacoes": "Incidente histórico (2026-04-23): INSS sócio estava sendo calculado em tabela progressiva 7,5-14% (própria do CLT). v6.1.0 corrigiu para 11% fixo."
+    },
+    "in_rfb_2055_2021": {
+      "id": "in_rfb_2055_2021",
+      "norma_curta": "IN RFB 2.055/2021",
+      "norma_completa": "Instrução Normativa RFB nº 2.055, de 6 de dezembro de 2021",
+      "ementa": "Restituição, compensação e ressarcimento. Base do PER/DCOMP e da prescrição quinquenal para recuperação tributária.",
+      "tema": "PER/DCOMP, prescrição 5 anos, repetição de indébito",
+      "url_oficial": "http://normas.receita.fazenda.gov.br/sijut2consulta/link.action?idAto=121634",
+      "url_cache_econet": null,
+      "vigencia_inicio": "2022-01-01",
+      "vigencia_ate": "permanente",
+      "data_captura": null,
+      "hash_sha256_html": null,
+      "hash_sha256_pdf": null,
+      "revisado_por": null,
+      "ultima_verificacao_externa": null,
+      "scripts_que_dependem": [
+        "recuperacao_tributaria/scripts/verificar_prescricao.py",
+        "recuperacao_tributaria/scripts/mapear_oportunidades.py"
+      ],
+      "tabelas_que_dependem": [],
+      "observacoes": "Base do módulo recuperacao_tributaria/."
+    },
+    "in_rfb_2312_2026": {
+      "id": "in_rfb_2312_2026",
+      "norma_curta": "IN RFB 2.312/2026",
+      "norma_completa": "Instrução Normativa RFB nº 2.312, de 2026",
+      "ementa": "Declaração de Ajuste Anual do IRPF exercício 2026 (AC 2025). Layouts, prazos, tabela progressiva, limites de dedução.",
+      "tema": "IRPF AC 2025 — DIRPF 2026",
+      "url_oficial": "http://normas.receita.fazenda.gov.br/sijut2consulta/",
+      "url_cache_econet": null,
+      "vigencia_inicio": "2026-01-01",
+      "vigencia_ate": "2026-12-31",
+      "data_captura": null,
+      "hash_sha256_html": null,
+      "hash_sha256_pdf": null,
+      "revisado_por": null,
+      "ultima_verificacao_externa": null,
+      "scripts_que_dependem": [
+        "calc_irpf_integrado.py",
+        "calc_carne_leao.py",
+        "calc_gcap_imovel.py",
+        "calc_gcap_veiculo.py",
+        "calc_gcap_crypto.py",
+        "calc_gcap_etf_exterior.py",
+        "gerar_dossie_irpf.py"
+      ],
+      "tabelas_que_dependem": [
+        "irrf_2026.json",
+        "irpf_deducoes.json",
+        "ptax_2026.json"
+      ],
+      "observacoes": "Atenção: vigência expira em 2026-12-31. Renovar tabelas para IN do exercício 2027."
+    },
+    "lei_15270_2025": {
+      "id": "lei_15270_2025",
+      "norma_curta": "Lei 15.270/2025",
+      "norma_completa": "Lei nº 15.270, de 2025",
+      "ementa": "Institui IRRF de 10% sobre dividendos distribuídos por pessoa jurídica acima de R$ 50.000/mês por sócio. Cria regra de transição até 2028 para lucros aprovados até 31/12/2025.",
+      "tema": "IRRF 10% sobre dividendos + regra de transição",
+      "url_oficial": "https://www.planalto.gov.br/",
+      "url_cache_econet": null,
+      "vigencia_inicio": "2026-01-01",
+      "vigencia_ate": "permanente",
+      "data_captura": null,
+      "hash_sha256_html": null,
+      "hash_sha256_pdf": null,
+      "revisado_por": null,
+      "ultima_verificacao_externa": null,
+      "scripts_que_dependem": [
+        "calc_distribuicao_lucros.py",
+        "calc_irrf.py",
+        "calc_comparativo_regimes.py"
+      ],
+      "tabelas_que_dependem": [
+        "irrf_2026.json",
+        "codigos_rendimentos_isentos.json"
+      ],
+      "observacoes": "Controvérsia ativa: aplicabilidade a Simples Nacional vs LC 123/2006 Art. 14 (CF Art. 146, III, 'd')."
+    },
+    "lei_14754_2023": {
+      "id": "lei_14754_2023",
+      "norma_curta": "Lei 14.754/2023",
+      "norma_completa": "Lei nº 14.754, de 12 de dezembro de 2023",
+      "ementa": "Tributação de aplicações financeiras no exterior, trusts, fundos exclusivos. Regime de tributação anual para offshore.",
+      "tema": "Investimentos no exterior — IRPF",
+      "url_oficial": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/l14754.htm",
+      "url_cache_econet": null,
+      "vigencia_inicio": "2024-01-01",
+      "vigencia_ate": "permanente",
+      "data_captura": null,
+      "hash_sha256_html": null,
+      "hash_sha256_pdf": null,
+      "revisado_por": null,
+      "ultima_verificacao_externa": null,
+      "scripts_que_dependem": [
+        "calc_gcap_etf_exterior.py",
+        "calc_gcap_crypto.py",
+        "calc_carne_leao.py"
+      ],
+      "tabelas_que_dependem": [],
+      "observacoes": "Regulamentada pela IN RFB 2.077/2023."
+    },
+    "lei_12431_2011_art3": {
+      "id": "lei_12431_2011_art3",
+      "norma_curta": "Lei 12.431/2011, Art. 3°",
+      "norma_completa": "Lei nº 12.431, de 24 de junho de 2011, Art. 3°",
+      "ementa": "Isenção de IR para CRI, CRA, debêntures incentivadas e LCI/LCA detidos por pessoa física.",
+      "tema": "Isenção rendimentos de renda fixa incentivada — código 06 IRPF",
+      "url_oficial": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12431.htm",
+      "url_cache_econet": null,
+      "vigencia_inicio": "2011-06-27",
+      "vigencia_ate": "permanente",
+      "data_captura": null,
+      "hash_sha256_html": null,
+      "hash_sha256_pdf": null,
+      "revisado_por": null,
+      "ultima_verificacao_externa": null,
+      "scripts_que_dependem": [
+        "parse_informe_rendimentos.py"
+      ],
+      "tabelas_que_dependem": [
+        "codigos_rendimentos_isentos.json"
+      ],
+      "observacoes": "CRI/CRA são código 06 — NÃO 12 (poupança). Regra crítica para classificação no IRPF."
+    },
+    "lei_9250_1995": {
+      "id": "lei_9250_1995",
+      "norma_curta": "Lei 9.250/1995",
+      "norma_completa": "Lei nº 9.250, de 26 de dezembro de 1995",
+      "ementa": "Tabela progressiva do IRPF, deduções legais (saúde, educação, dependentes), isenções (aposentadoria 65+, ganho de capital imóvel residencial).",
+      "tema": "Tabela IRPF e deduções",
+      "url_oficial": "https://www.planalto.gov.br/ccivil_03/leis/l9250.htm",
+      "url_cache_econet": null,
+      "vigencia_inicio": "1996-01-01",
+      "vigencia_ate": "permanente",
+      "data_captura": null,
+      "hash_sha256_html": null,
+      "hash_sha256_pdf": null,
+      "revisado_por": null,
+      "ultima_verificacao_externa": null,
+      "scripts_que_dependem": [
+        "calc_irrf.py",
+        "calc_irpf_integrado.py",
+        "calc_carne_leao.py",
+        "gerar_dossie_irpf.py"
+      ],
+      "tabelas_que_dependem": [
+        "irrf_2026.json",
+        "irpf_deducoes.json"
+      ],
+      "observacoes": "Valores das deduções e tabela progressiva são atualizados anualmente — ver IN RFB do ano-exercício."
+    },
+    "rir_2018_decreto_9580": {
+      "id": "rir_2018_decreto_9580",
+      "norma_curta": "RIR/2018 (Decreto 9.580/2018)",
+      "norma_completa": "Decreto nº 9.580, de 22 de novembro de 2018 — Regulamento do Imposto sobre a Renda",
+      "ementa": "Regulamento consolidado do IR (PF e PJ). Base sistemática de quase todas as regras.",
+      "tema": "Regulamento geral IR",
+      "url_oficial": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9580.htm",
+      "url_cache_econet": null,
+      "vigencia_inicio": "2018-11-23",
+      "vigencia_ate": "permanente",
+      "data_captura": null,
+      "hash_sha256_html": null,
+      "hash_sha256_pdf": null,
+      "revisado_por": null,
+      "ultima_verificacao_externa": null,
+      "scripts_que_dependem": [
+        "calc_irpf_integrado.py",
+        "calc_irrf.py",
+        "calc_lucro_real.py",
+        "calc_presumido.py",
+        "gerar_dossie_irpf.py"
+      ],
+      "tabelas_que_dependem": [
+        "irrf_2026.json",
+        "irpf_deducoes.json"
+      ],
+      "observacoes": "Regulamento, não pode ampliar ou restringir a lei que regulamenta. Em conflito, prevalece a lei."
+    }
+  }
+}
